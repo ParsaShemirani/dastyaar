@@ -15,6 +15,7 @@ except Exception as e:
 
 
 def response(history):
+
     return client.responses.create(
         model = "gpt-4o-mini",
         input = history,

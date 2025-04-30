@@ -1,7 +1,7 @@
 from app.core.processor import printer
 
 from app.core.processor import messages_appender
-print("✅ JAMES IMPORTED")  
+
 from app.agents.bill_entry_getter import response as bill_responder
 
 from app.core.processor import response_handler
@@ -14,7 +14,6 @@ from app.core.processor import response_handler
 
 
 def main():
-    print("Tonyjames")
 
     history = [
         {
@@ -39,26 +38,26 @@ def main():
         history = messages_appender(None,"user_message",history,user_input,None)
 
         #Call AI assistant
-        main_response = bill_responder(history)
+        ai_response = bill_responder(history)
 
-        processed = response_handler(main_response,history)
+        new_history_and_return_status= response_handler(ai_response,history)
         
-        history = processed[0]
-        to_continue = processed[1]
+        history = new_history_and_return_status[0]
+        return_status = new_history_and_return_status[1]
 
-        if to_continue == False:
-            printer("assistant",processed[0])
 
+        if return_status == False:
+            printer("assistant",ai_response)
         else:
             iterations = 0
-            while to_continue == True and iterations < 3:
-                follow_up_response = bill_responder(history)
-                processed = response_handler(follow_up_response,history)
-                history = processed[0]
-                to_continue = processed[1]
+            while return_status == True and iterations < 3:
+                ai_response = bill_responder(history)
+                new_history_and_return_status = response_handler(ai_response,history)
+                history = new_history_and_return_status[0]
+                return_status = new_history_and_return_status[1]
                 iterations += 1
-                print("Iterations:")
-                print(iterations)
+                if return_status == False:
+                    printer("assistant",ai_response)
 
 
 

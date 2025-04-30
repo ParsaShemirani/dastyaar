@@ -40,7 +40,7 @@ def messages_appender(
         messages.append({
             "type": "function_call_output",
             "call_id": fragment.call_id,
-            "output": function_output
+            "output": repr(function_output)
         })
 
     elif fragment_kind == "assistant_message" and fragment.role == "assistant":
@@ -93,6 +93,12 @@ def response_handler(
         response,
         messages
 ) -> Any:
+    """
+    This function takes a new response from the AI, then calls the necessary functions, and appends function output or assistant
+    messages to the current messages, then returns the new message list, as well as wether or not the history should
+    route to the AI again before going to user.
+    
+    """
     saw_function_call = False
     saw_assistant_message = False
     follow_up_needed = False
@@ -122,11 +128,10 @@ def response_handler(
 
 def printer(role,assistant_output):
     if role == "assistant":
+        text = assistant_output.output[0].content[0].text
         print("\n" + "=" * 80)
         print("Assistant:")
-        for content_item in assistant_output.content:
-            if content_item.type == "output_text":
-                print(f"{content_item.text}")
+        print(text)
         print("=" * 80 + "\n")
     
 
