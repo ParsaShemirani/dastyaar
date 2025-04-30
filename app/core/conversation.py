@@ -1,5 +1,8 @@
 from typing import List, Dict, Any, Optional
 
+
+
+
 """
 Creates an instance of "conversation". Does everything related to updating the
 conversation, loading old ones. Does not deal with outputting messages
@@ -81,6 +84,6 @@ class Conversation:
                 "output": repr(result)
             }
         )
-    
+
 
 
