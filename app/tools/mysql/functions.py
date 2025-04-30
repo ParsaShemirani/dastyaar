@@ -1,4 +1,4 @@
-from app.config.settings import settings
+from app.config import settings
 from typing import List, Dict, Any
 import mysql.connector
 from mysql.connector import Error
@@ -11,10 +11,10 @@ def get_entries(search_text: str) -> List[Dict[str, Any]]:
     try:
         # Database connection
         db = mysql.connector.connect(
-            host=settings.mysql_host,
-            user=settings.mysql_user,
-            password=settings.mysql_password,
-            database=settings.mysql_db,
+            host=settings.MYSQL_HOST,
+            user=settings.MYSQL_USER,
+            password=settings.MYSQL_PASSWORD,
+            database="logbase",
             connection_timeout=5
         )
         mysql_cursor = db.cursor(dictionary=True)

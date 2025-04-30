@@ -88,6 +88,7 @@ def function_executer(
     return function_result
 
 
+#Main handler for responses
 def response_handler(
         response,
         messages
@@ -114,3 +115,27 @@ def response_handler(
         follow_up_needed = True
 
     return (messages,follow_up_needed)
+
+
+
+#Printer prototype
+
+def printer(role,assistant_output):
+    if role == "assistant":
+        print("\n" + "=" * 80)
+        print("Assistant:")
+        for content_item in assistant_output.content:
+            if content_item.type == "output_text":
+                print(f"{content_item.text}")
+        print("=" * 80 + "\n")
+    
+
+    if role == "user":
+        print("-" * 80)
+    
+    if role == "initiator":
+        print("\n" + "=" * 80)
+        print("AI Assistant (Type 'exit' to quit, 'savemessages' to save conversation)")
+        print("=" * 80)
+
+

@@ -6,8 +6,10 @@ load_dotenv()
 
 # Now safely load secrets
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-DATABASE_URL = os.getenv("DATABASE_URL")
-GOOGLE_CALENDAR_CLIENT_ID = os.getenv("GOOGLE_CALENDAR_CLIENT_ID")
-GOOGLE_CALENDAR_CLIENT_SECRET = os.getenv("GOOGLE_CALENDAR_CLIENT_SECRET")
-DEFAULT_TIMEZONE = os.getenv("DEFAULT_TIMEZONE", "UTC")  # fallback to UTC if not set
+MYSQL_HOST=os.getenv("MYSQL_HOST")
+MYSQL_USER=os.getenv("MYSQL_USER")
+MYSQL_PASSWORD=os.getenv("MYSQL_PASSWORD")
+
+
+
 
