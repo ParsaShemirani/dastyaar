@@ -5,12 +5,19 @@ from app.config.settings import OPENAI_API_KEY
 function_schema = [
     mysql_schema["get_entries"]
 ]
+system_prompt = "You are a helpful assistant. Use get_entries(...) to fetch notes from the database."
+
+
+
+
 
 try:
     client = OpenAI()
     print("OpenAI Connected")
 except Exception as e:
     print(f"Failed to create OpenAI client. Message: {e}")
+
+
 
 
 
