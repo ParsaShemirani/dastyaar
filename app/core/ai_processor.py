@@ -1,7 +1,7 @@
 from typing import Any
 from app.core.function_service import execute_function
 from app.core.printer import print_message
-from app.agents.bill_entry_getter import response as bill_responder
+from app.agents.journaler import response as journaler_response
 
 MAX_ITERATIONS = 3
 
@@ -26,7 +26,7 @@ def process(conversation: Any) -> None:
     - Handling assistant messages
     - Managing follow-up interactions
     """
-    ai_response = bill_responder(conversation.history)
+    ai_response = journaler_response(conversation.history)
     
     saw_function_call = False
     saw_assistant_message = False
@@ -46,4 +46,4 @@ def process(conversation: Any) -> None:
 
         follow_up_needed = saw_function_call and not saw_assistant_message
         if follow_up_needed:
-            ai_response = bill_responder(conversation.history)
+            ai_response = journaler_response(conversation.history)

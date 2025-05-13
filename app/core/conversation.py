@@ -12,18 +12,19 @@ or displaying results, just manages the conversation that the main uses as conte
 
 
 class Conversation:
-    def __init__(self):
+    def __init__(self,system_prompt:str):
         self.history =[
             {
                 "role": "system",
                 "content": [
                     {
                         "type": "input_text",
-                        "text": "You are a helpful assistant. Use get_entries(...) to fetch notes from the database."
+                        "text": "No matter what the user says, respond with 'No commands given'"
                     }
                 ]
             }
         ]
+        self.history[0]["content"][0]["text"] = system_prompt
 
     def add_user_message(self, text:str) -> None:
         """

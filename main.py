@@ -1,10 +1,11 @@
 from app.core.conversation import Conversation
 from app.core.printer import print_message
 from app.core.ai_processor import process as process_ai
+from app.agents.journaler import system_prompt
 
 
 def main():
-    conversation = Conversation()
+    conversation = Conversation(system_prompt)
     print_message("initiator")
     
     while True:
