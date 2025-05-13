@@ -150,24 +150,21 @@ def get_current_time() -> str:
     return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 
-def generate_new_filename(file_path: str, new_hash: str, version_in_base: int) -> str:
+def generate_voicerec_filename(file_path: str, new_hash: str) -> str:
     """
     Generate a new filename for journal voice memo entries.
     
     Args:
         file_path (str): Current file path
-        new_hash (str): Hash to be included in new filename
-        version_in_base (int): Current version number in the base
-        
+        new_hash (str): Hash to be included in new filename        
     Returns:
         str: New filename with updated version and hash
     """
     base_name = os.path.basename(file_path)
     
-    if version_in_base == 0:
-        name, ext = os.path.splitext(base_name)
-        journal_prefix = "journalbase_entry"
-        return f"{journal_prefix}-v1-{new_hash}{ext}"
+    name, ext = os.path.splitext(base_name)
+    journal_prefix = "journalbase_entry"
+    return f"{journal_prefix}-v1-{new_hash}{ext}"
 
 
 def get_new_full_path(current_path: str, new_name: str) -> str:

@@ -145,7 +145,7 @@ class FileDBManager:
         try:
             self._ensure_connection()
             query = """
-                INSERT INTO file_locations 
+                INSERT INTO file_location
                     (file_id, location_id)
                 VALUES 
                     (%s, %s)
