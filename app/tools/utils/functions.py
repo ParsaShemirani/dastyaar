@@ -216,6 +216,7 @@ def renamer(current_path: str, new_path: str) -> str:
 def copy_file_with_metadata(src_path: str, dst_dir: str) -> None:
     """
     Copy a file to a destination directory while preserving metadata.
+    Handles macOS-specific file flag issues.
     
     Args:
         src_path (str): Path to the source file
@@ -232,6 +233,65 @@ def copy_file_with_metadata(src_path: str, dst_dir: str) -> None:
     dst_path = os.path.join(dst_dir, filename)
 
     try:
-        shutil.copy2(src_path, dst_path)
+        # First try simple file copy without metadata
+        shutil.copy(src_path, dst_path)
+        
+        # Then try to copy metadata separately, ignoring flag-related errors
+        try:
+            # Copy file stats (timestamps etc)
+            src_stat = os.stat(src_path)
+            os.utime(dst_path, (src_stat.st_atime, src_stat.st_mtime))
+            
+            # Copy permissions
+            os.chmod(dst_path, src_stat.st_mode)
+        except OSError:
+            # Ignore metadata copying errors
+            pass
+            
     except Exception as e:
+        if os.path.exists(dst_path):
+            try:
+                os.remove(dst_path)
+            except:
+                pass
         raise OSError(f"Error copying file: {e}")
+
+
+def generate_new_filename(file_path: str, hex_hash: str, version_number: int) -> str:
+    """
+    Generate a new filename with version number and hash.
+    
+    Args:
+        file_path (str): Full path or filename containing version number and hash
+        hex_hash (str): SHA-256 hash to include in filename
+        version_number (int): Version number to include in filename
+        
+    Returns:
+        str: Updated filename with version and hash (no path included)
+        
+    Raises:
+        ValueError: If the filename format is invalid for version numbers > 1
+    """
+    try:
+        base_name = os.path.basename(file_path)
+
+        # Handle version 1 files
+        if version_number == 1:
+            name, ext = os.path.splitext(base_name)
+            return f"{name}-v1-{hex_hash}{ext}"
+
+        # Handle existing versioned files
+        pattern = r'(.*-v)(\d+)(-[a-f0-9]{64})(\..*)?$'
+        match = re.match(pattern, base_name)
+        
+        if not match:
+            raise ValueError(f"Invalid filename format for versioned file: {base_name}")
+        
+        prefix = match.group(1)      # Everything up to the version number
+        extension = match.group(4) or ''  # File extension (including dot) or empty string
+        
+        return f"{prefix}{version_number}-{hex_hash}{extension}"
+        
+    except Exception as e:
+        print(f"Error generating new filename for {file_path}: {e}")
+        raise

@@ -72,6 +72,7 @@ class SQLFileData:
         }
 
 def process_file(file_path):
+    print("Generating transcription")
     transcription = get_transcription(file_path)
     print("Transcription:")
     print(transcription)
@@ -90,6 +91,11 @@ def process_file(file_path):
         if file_db.check_hash_exists(file_data.sha_hash):
             print(f"File with hash {file_data.sha_hash} already exists in database")
             return None
+        
+        #Insert the file into segate firstmassbase (location id 1)
+        new_path = utils.get_new_full_path(file_path,file_data.name)
+        utils.renamer(file_path,new_path)
+        utils.copy_file_with_metadata(new_path,"/Volumes/Seagate_Hub/firstmassbase")
             
         # Insert file metadata into database
         if file_db.insert_file(file_data.to_db_dict()):

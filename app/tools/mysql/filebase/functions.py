@@ -158,3 +158,76 @@ class FileDBManager:
             print(f"Database error during location mapping insertion: {e}")
             self.connection.rollback()
             return False
+        
+    def get_version_in_base(self, hash_value: str) -> int:
+        """
+        Get the version number of a file using its SHA hash. (Converts the hexa hash argument to bin via UNHEX (%s) for query)
+        
+        Args:
+            hash_value (str): The hexadecimal SHA-256 hash of the file
+            
+        Returns:
+            int: The version number if found, 0 if not found, -1 if error occurs
+        """
+        try:
+            self._ensure_connection()
+            query = """
+                SELECT 
+                    version_number 
+                FROM files 
+                WHERE sha_hash = UNHEX(%s)
+            """
+            self.cursor.execute(query, (hash_value,))
+            result = self.cursor.fetchone()
+            return result['version_number'] if result else 0
+        except Error as e:
+            print(f"Database error while getting version number: {e}")
+            return -1
+        
+    def add_tags_to_file(self, file_id: int, tag_string: str) -> bool:
+        """
+        Add tags to a file in the database. If tags don't exist, they will be created.
+        
+        Args:
+            file_id (int): The ID of the file to tag
+            tag_string (str): Comma-separated string of tags
+            
+        Returns:
+            bool: True if tags were added successfully, False if failed
+        """
+        if not file_id or not tag_string:
+            print("Error: Both file_id and tag_string are required")
+            return False
+
+        try:
+            self._ensure_connection()
+            tags = [tag.strip() for tag in tag_string.split(',')]
+            
+            for tag in tags:
+                # Check if the tag exists in the 'tags' table
+                self.cursor.execute("SELECT id FROM tags WHERE name = %s", (tag,))
+                result = self.cursor.fetchone()
+
+                if result is None:
+                    # If the tag doesn't exist, insert it into the 'tags' table
+                    self.cursor.execute("INSERT INTO tags (name) VALUES (%s)", (tag,))
+                    self.connection.commit()
+                    self.cursor.execute("SELECT id FROM tags WHERE name = %s", (tag,))
+                    result = self.cursor.fetchone()
+
+                tag_id = result['id']
+
+                # Insert the tag into the 'file_tag' table (ignoring if it already exists)
+                self.cursor.execute("""
+                    INSERT IGNORE INTO file_tag (file_id, tag_id) 
+                    VALUES (%s, %s)
+                """, (file_id, tag_id))
+                self.connection.commit()
+            
+            print("Successfully added tags to file")
+            return True
+            
+        except Error as e:
+            print(f"Database error while adding tags: {e}")
+            self.connection.rollback()
+            return False
