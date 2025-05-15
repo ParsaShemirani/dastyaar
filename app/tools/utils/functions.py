@@ -5,6 +5,7 @@ import os
 import re
 import datetime
 import shutil
+from zoneinfo import ZoneInfo
 
 
 def generate_sha_hash(file_path: Union[str, Path], hex_output: bool = True) -> Union[str, bytes]:
@@ -304,3 +305,32 @@ def generate_new_filename(file_path: str, bin_hash: bytes, version_number: int) 
     except Exception as e:
         print(f"Error generating new filename for {file_path}: {e}")
         raise
+
+
+def path_to_mysql_datetime(file_path: str) -> str:
+    """
+    Convert a filename timestamp to MySQL DATETIME format in UTC.
+    
+    Args:
+        file_path (str): Path to file with name format 'YYYYMMDD-HHMMSS.ext'
+        
+    Returns:
+        str: UTC timestamp in MySQL DATETIME format ('YYYY-MM-DD HH:MM:SS')
+    """
+    # Extract filename and strip extension
+    filename = os.path.basename(file_path)
+    base_name = filename.split('.')[0]  # e.g. "20250511-203057"
+    
+    # Split date/time and parse to naive datetime
+    date_part, time_part = base_name.split('-')
+    dt_naive = datetime.datetime.strptime(date_part + time_part, "%Y%m%d%H%M%S")
+    
+    # Localize to LA time (zoneinfo will handle PST vs PDT)
+    la_tz = ZoneInfo("America/Los_Angeles")
+    dt_local = dt_naive.replace(tzinfo=la_tz)
+    
+    # Convert to UTC
+    dt_utc = dt_local.astimezone(ZoneInfo("UTC"))
+    
+    # Format for MySQL DATETIME (no timezone suffix)
+    return dt_utc.strftime('%Y-%m-%d %H:%M:%S')

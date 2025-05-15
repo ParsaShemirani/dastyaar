@@ -6,7 +6,7 @@ project_root = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, project_root)
 
 # Import function from cli programs
-from app.cli_programs.voice_recording_uploader.main import process_file
+from app.cli_programs.voice_recording_uploader.old_main import process_file
 
 folder_path = '/Users/parsashemirani/Main/Inbox/voicemilitary/testrunners'
 
