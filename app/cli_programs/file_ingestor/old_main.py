@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Optional, Dict, Any, Tuple
 
 from app.tools.utils import functions as utils
-from app.tools.mysql.filebase.functions import FileDBManager
+from app.tools.mysql.filebase.functions_old import FileDBManager
 from app.cli_programs.file_ingestor.time_configurator import new_ts
 from app.cli_programs.file_ingestor import description_recorder
 
@@ -111,12 +111,6 @@ def main(file_path=None):
         metadata = file_data.to_db_dict()
         db.insert_file(metadata)
         print("Metadata inserted successfully")
-        
-        # Step 7: Handle tags
-        file_id = db.get_file_id(file_data.sha_hash)
-        tags = description_recorder.tag_generator_from_description(file_data.description)
-        db.add_tags_to_file(file_id, tags)
-        print("Tags inserted successfully")
 
         # Step 8: Insert location data
 

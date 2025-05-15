@@ -4,8 +4,7 @@ import pyaudio
 import wave
 import subprocess
 import threading
-from app.tools.openai.functions import get_transcription, tag_generator_from_description
-
+from app.tools.openai.functions import get_transcription
 class AudioRecorder:
     def __init__(self):
         self.format = pyaudio.paInt16

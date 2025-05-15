@@ -1,233 +1,116 @@
-from app.config import settings
+from app.core.exceptions import DatabaseError
+from .pool import filebase_pool
 from typing import List, Dict, Any
-import mysql.connector
-from mysql.connector import Error
 
 
-class FileDBManager:
-    def __init__(self):
-        self.connection = None
-        self.cursor = None
-        self._connect()
 
-    def _connect(self):
-        """Establish database connection"""
-        try:
-            self.connection = mysql.connector.connect(
-                host=settings.MYSQL_HOST,
-                user=settings.MYSQL_USER,
-                password=settings.MYSQL_PASSWORD,
-                database="filebase",
-                connection_timeout=5
-            )
-            self.cursor = self.connection.cursor(dictionary=True)
-        except Error as e:
-            print(f"Error connecting to database: {e}")
-            raise
-
-    def _ensure_connection(self):
-        """Ensure the connection is alive, reconnect if needed"""
-        try:
-            if not self.connection or not self.connection.is_connected():
-                self._connect()
-        except Error as e:
-            print(f"Error reconnecting to database: {e}")
-            raise
-
-    def __del__(self):
-        """Cleanup database resources"""
-        if self.cursor:
-            self.cursor.close()
-        if self.connection and self.connection.is_connected():
-            self.connection.close()
+def get_file_id_via_hash(sha_hash: str) -> int:
+    """
+    Get the ID of a file using its SHA hash.
     
-    def check_hash_exists(self, sha_hash: str) -> bool:
-        """
-        Check if a file with the given SHA hash already exists in the database.
+    Args:
+        sha_hash (str): The binary SHA-256 hash of the file
         
-        Args:
-            sha_hash (str): The SHA-256 hash of the file to check
-            
-        Returns:
-            bool: True if the hash exists, False otherwise
-        """
-        try:
-            self._ensure_connection()
-            query = """
-                SELECT 
-                    COUNT(*) as count 
-                FROM files 
-                WHERE sha_hash = %s
-            """
-            self.cursor.execute(query, (sha_hash,))
-            result = self.cursor.fetchone()
-            return result['count'] > 0 if result else False
-        except Error as e:
-            print(f"Database error while checking hash: {e}")
-            return False
+    Returns:
+        int: The file ID if found, 0 if not found or error occurs
+    """
 
-    def insert_file(self, file_metadata: Dict[str, Any]) -> bool:
+    try:
+        query = """
+            SELECT 
+                id 
+            FROM files 
+            WHERE sha_hash = %s
         """
-        Insert a new file record into the database.
-        
-        Args:
-            file_metadata (Dict[str, Any]): Dictionary containing file metadata
-                Expected keys: filename, filepath, sha_hash, file_type, created_at
-                
-        Returns:
-            bool: True if insertion successful, False if failed
-        """
-        if not file_metadata:
-            print("Error: file_metadata cannot be empty")
-            return False
-            
-        try:
-            self._ensure_connection()
-            columns = ', '.join(file_metadata.keys())
-            placeholders = ', '.join(['%s'] * len(file_metadata))
-            query = f"""
-                INSERT INTO files 
-                    ({columns}) 
-                VALUES 
-                    ({placeholders})
-            """
-            values = tuple(file_metadata.values())
-            
-            self.cursor.execute(query, values)
-            self.connection.commit()
-            print("Successfully inserted file record into database")
-            return True
-        except Error as e:
-            print(f"Database error during file insertion: {e}")
-            self.connection.rollback()
-            return False
-        
-    def get_file_id(self, sha_hash: str) -> int:
-        """
-        Get the ID of a file using its SHA hash.
-        
-        Args:
-            sha_hash (str): The binary SHA-256 hash of the file
-            
-        Returns:
-            int: The file ID if found, 0 if not found or error occurs
-        """
-        try:
-            self._ensure_connection()
-            query = """
-                SELECT 
-                    id 
-                FROM files 
-                WHERE sha_hash = %s
-            """
-            self.cursor.execute(query, (sha_hash,))
-            result = self.cursor.fetchone()
-            return result['id'] if result else 0
-        except Error as e:
-            print(f"Database error while getting file ID: {e}")
+        result = filebase_pool.execute_read(query,[sha_hash],fetch_one=True)
+        #TEST PRINT
+        print("JAMIE RESULT")
+        print(result)
+        if result is None:
             return 0
+        return result['id']
 
-    def insert_location(self, file_id: int, location_id: int) -> bool:
-        """
-        Insert a new row for a file and its storage location
-        
-        Args:
-            file_id (int): The ID of the file
-            location_id (int): The ID of the storage location
-            
-        Returns:
-            bool: True if insertion successful, False if failed
-        """
-        if not file_id or not location_id:
-            print("Error: Both file_id and location_id are required")
-            return False
-            
-        try:
-            self._ensure_connection()
-            query = """
-                INSERT INTO file_location
-                    (file_id, location_id)
-                VALUES 
-                    (%s, %s)
-            """
-            self.cursor.execute(query, (file_id, location_id))
-            self.connection.commit()
-            print("Successfully inserted file-location mapping")
-            return True
-        except Error as e:
-            print(f"Database error during location mapping insertion: {e}")
-            self.connection.rollback()
-            return False
-        
-    def get_version_in_base(self, hash_value: str) -> int:
-        """
-        Get the version number of a file using its SHA hash. (Converts the hexa hash argument to bin via UNHEX (%s) for query)
-        
-        Args:
-            hash_value (str): The hexadecimal SHA-256 hash of the file
-            
-        Returns:
-            int: The version number if found, 0 if not found, -1 if error occurs
-        """
-        try:
-            self._ensure_connection()
-            query = """
-                SELECT 
-                    version_number 
-                FROM files 
-                WHERE sha_hash = UNHEX(%s)
-            """
-            self.cursor.execute(query, (hash_value,))
-            result = self.cursor.fetchone()
-            return result['version_number'] if result else 0
-        except Error as e:
-            print(f"Database error while getting version number: {e}")
-            return -1
-        
-    def add_tags_to_file(self, file_id: int, tag_string: str) -> bool:
-        """
-        Add tags to a file in the database. If tags don't exist, they will be created.
-        
-        Args:
-            file_id (int): The ID of the file to tag
-            tag_string (str): Comma-separated string of tags
-            
-        Returns:
-            bool: True if tags were added successfully, False if failed
-        """
-        if not file_id or not tag_string:
-            print("Error: Both file_id and tag_string are required")
-            return False
+    except DatabaseError as e:
+        # Re-raise the database error with more context
+        raise DatabaseError(f"Failed to check has existence: {str(e)}")
+    
 
-        try:
-            self._ensure_connection()
-            tags = [tag.strip() for tag in tag_string.split(',')]
-            
-            for tag in tags:
-                # Check if the tag exists in the 'tags' table
-                self.cursor.execute("SELECT id FROM tags WHERE name = %s", (tag,))
-                result = self.cursor.fetchone()
+def insert_file_location(file_id: int, location_id: int) -> bool:
+    """
+    Insert a new row for a file and its storage location
+    
+    Args:
+        file_id (int): The ID of the file
+        location_id (int): The ID of the storage location
+        
+    Returns:
+        bool: True if insertion successful, False if failed
+    """
+    try:
+        query = """
+            INSERT INTO file_location
+                (file_id, location_id)
+            VALUES 
+                (%s, %s)
+        """
+        filebase_pool.execute_write(query, [file_id, location_id])
+        return True
 
-                if result is None:
-                    # If the tag doesn't exist, insert it into the 'tags' table
-                    self.cursor.execute("INSERT INTO tags (name) VALUES (%s)", (tag,))
-                    self.connection.commit()
-                    self.cursor.execute("SELECT id FROM tags WHERE name = %s", (tag,))
-                    result = self.cursor.fetchone()
+    except DatabaseError as e:
+        # Re-raise the database error with more context
+        raise DatabaseError(f"Failed to insert file location: {str(e)}")
+    
 
-                tag_id = result['id']
+def get_version_number_via_hash(hash_value: str) -> int:
+    """
+    Get the version number of a file using its binary SHA hash.
+    
+    Args:
+        hash_value (str): The binary SHA-256 hash of the file
+        
+    Returns:
+        int: The version number if found, 0 if not found.
+    """
+    try:
+        query = """
+            SELECT 
+                version_number 
+            FROM files 
+            WHERE sha_hash = UNHEX(%s)
+        """
+        result = filebase_pool.execute_read(query, [hash_value], fetch_one=True)
+        if result is None:
+            return 0
+        return result['version_number']
+        
+    except DatabaseError as e:
+        # Re-raise the database error with more context
+        raise DatabaseError(f"Failed to get version number: {str(e)}")
+    
 
-                # Insert the tag into the 'file_tag' table (ignoring if it already exists)
-                self.cursor.execute("""
-                    INSERT IGNORE INTO file_tag (file_id, tag_id) 
-                    VALUES (%s, %s)
-                """, (file_id, tag_id))
-                self.connection.commit()
-            
-            print("Successfully added tags to file")
-            return True
-            
-        except Error as e:
-            print(f"Database error while adding tags: {e}")
-            self.connection.rollback()
-            return False
+
+def insert_file(file_metadata: Dict[str, Any]) -> bool:
+    """
+    Insert a new file record into the database.
+
+    Args:
+        file_metadata (Dict[str, Any]): Dictionary containing file metadata    
+    Returns:
+        bool: True if insertion successful, False if failed
+    """
+    try:
+        columns = ', '.join(file_metadata.keys())
+        placeholders = ', '.join(['%s'] * len(file_metadata))
+        query = f"""
+            INSERT INTO files 
+                ({columns}) 
+            VALUES 
+                ({placeholders})
+        """
+        values = tuple(file_metadata.values())
+        filebase_pool.execute_write(query, values,False)
+        return True
+
+    except DatabaseError as e:
+        # Re-raise the database error with more context
+        raise DatabaseError(f"Failed to insert file: {str(e)}")

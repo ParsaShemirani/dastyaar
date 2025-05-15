@@ -74,18 +74,24 @@ def get_file_size(full_path: Union[str, Path]) -> int:
 
 def extract_hash_from_filename(file_path: str) -> Optional[str]:
     """
-    Extract SHA-256 hash from a filename that follows the pattern -v<number>-<hash>.
+    Extract binary SHA-256 hash from a filename that follows the pattern -v<number>-<hash>.
     
     Args:
         file_path (str): The file path or name to extract hash from
         
     Returns:
-        Optional[str]: The extracted 64-character hex hash if found, None otherwise
+        Optional[str]: The binary sha-256 hash converted from hex if found, None otherwise
     """
     pattern = r'-v\d+-([a-f0-9]{64})(?:\.\w+)?$'
     match = re.search(pattern, file_path)
     
-    return match.group(1) if match else None
+    hex_hash = match.group(1) if match else None
+    
+    if hex_hash:
+        # Convert hex string to binary
+        return bytes.fromhex(hex_hash).decode('utf-8')
+            
+    return None
 
 
 def get_file_extension(full_path: str) -> str:
@@ -257,13 +263,13 @@ def copy_file_with_metadata(src_path: str, dst_dir: str) -> None:
         raise OSError(f"Error copying file: {e}")
 
 
-def generate_new_filename(file_path: str, hex_hash: str, version_number: int) -> str:
+def generate_new_filename(file_path: str, bin_hash: str, version_number: int) -> str:
     """
     Generate a new filename with version number and hash.
     
     Args:
         file_path (str): Full path or filename containing version number and hash
-        hex_hash (str): SHA-256 hash to include in filename
+        bin_hash (str): Binary SHA-256 hash, will be converted to hex_hash to put in filename
         version_number (int): Version number to include in filename
         
     Returns:
@@ -272,6 +278,9 @@ def generate_new_filename(file_path: str, hex_hash: str, version_number: int) ->
     Raises:
         ValueError: If the filename format is invalid for version numbers > 1
     """
+    # Convert binary hash to hex
+    hex_hash = bin_hash.encode('utf-8').hex()
+    
     try:
         base_name = os.path.basename(file_path)
 
