@@ -72,7 +72,7 @@ def get_file_size(full_path: Union[str, Path]) -> int:
         raise
 
 
-def extract_hash_from_filename(file_path: str) -> Optional[str]:
+def extract_hash_from_filename(file_path: str) -> Optional[bytes]:
     """
     Extract binary SHA-256 hash from a filename that follows the pattern -v<number>-<hash>.
     
@@ -80,7 +80,7 @@ def extract_hash_from_filename(file_path: str) -> Optional[str]:
         file_path (str): The file path or name to extract hash from
         
     Returns:
-        Optional[str]: The binary sha-256 hash converted from hex if found, None otherwise
+        Optional[bytes]: The binary sha-256 hash converted from hex if found, None otherwise
     """
     pattern = r'-v\d+-([a-f0-9]{64})(?:\.\w+)?$'
     match = re.search(pattern, file_path)
@@ -88,8 +88,8 @@ def extract_hash_from_filename(file_path: str) -> Optional[str]:
     hex_hash = match.group(1) if match else None
     
     if hex_hash:
-        # Convert hex string to binary
-        return bytes.fromhex(hex_hash).decode('utf-8')
+        # Convert hex string to binary (bytes)
+        return bytes.fromhex(hex_hash)
             
     return None
 
@@ -263,13 +263,13 @@ def copy_file_with_metadata(src_path: str, dst_dir: str) -> None:
         raise OSError(f"Error copying file: {e}")
 
 
-def generate_new_filename(file_path: str, bin_hash: str, version_number: int) -> str:
+def generate_new_filename(file_path: str, bin_hash: bytes, version_number: int) -> str:
     """
     Generate a new filename with version number and hash.
     
     Args:
         file_path (str): Full path or filename containing version number and hash
-        bin_hash (str): Binary SHA-256 hash, will be converted to hex_hash to put in filename
+        bin_hash (bytes): Binary SHA-256 hash, will be converted to hex_hash to put in filename
         version_number (int): Version number to include in filename
         
     Returns:
@@ -279,7 +279,7 @@ def generate_new_filename(file_path: str, bin_hash: str, version_number: int) ->
         ValueError: If the filename format is invalid for version numbers > 1
     """
     # Convert binary hash to hex
-    hex_hash = bin_hash.encode('utf-8').hex()
+    hex_hash = bin_hash.hex()
     
     try:
         base_name = os.path.basename(file_path)

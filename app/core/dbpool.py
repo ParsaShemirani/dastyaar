@@ -32,7 +32,7 @@ class MySQLPoolInterface:
         query: str,
         params: Optional[Union[Dict, List, Tuple]] = None,
         fetch_one: bool = False
-    ) -> Union[List[Dict[str, Any]], Dict[str, Any]]:
+    ) -> Union[List[Dict[str, Any]], Optional[Dict[str, Any]]]:
         """
         Executes a SELECT query and returns the results.
 
@@ -54,7 +54,7 @@ class MySQLPoolInterface:
             cursor.execute(query, params)
             if fetch_one:
                 row = cursor.fetchone()
-                return row if row is not None else {}
+                return row
             return cursor.fetchall()
         except Error as e:
             raise DatabaseError(f"Error executing read query: {e}")

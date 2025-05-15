@@ -23,9 +23,6 @@ def get_file_id_via_hash(sha_hash: str) -> int:
             WHERE sha_hash = %s
         """
         result = filebase_pool.execute_read(query,[sha_hash],fetch_one=True)
-        #TEST PRINT
-        print("JAMIE RESULT")
-        print(result)
         if result is None:
             return 0
         return result['id']
