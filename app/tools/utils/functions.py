@@ -157,13 +157,13 @@ def get_current_time() -> str:
     return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 
-def generate_voicerec_filename(file_path: str, new_hash: str) -> str:
+def generate_voicerec_filename(file_path: str, bin_hash: bytes) -> str:
     """
     Generate a new filename for journal voice memo entries.
     
     Args:
         file_path (str): Current file path
-        new_hash (str): Hash to be included in new filename        
+        bin_hash (bytes): Binary hash to be included in new filename        
     Returns:
         str: New filename with updated version and hash
     """
@@ -171,7 +171,8 @@ def generate_voicerec_filename(file_path: str, new_hash: str) -> str:
     
     name, ext = os.path.splitext(base_name)
     journal_prefix = "journalbase_entry"
-    return f"{journal_prefix}-v1-{new_hash}{ext}"
+    hex_hash = bin_hash.hex()
+    return f"{journal_prefix}-v1-{hex_hash}{ext}"
 
 
 def get_new_full_path(current_path: str, new_name: str) -> str:

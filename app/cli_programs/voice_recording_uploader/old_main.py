@@ -8,7 +8,7 @@ from zoneinfo import ZoneInfo
 from app.tools.openai.functions import get_transcription
 from app.tools.utils import functions as utils
 from app.tools.mysql.filebase.functions_old import FileDBManager
-from app.tools.mysql.journalbase.functions import JournalDBManager
+from app.tools.mysql.journalbase.functions_old import JournalDBManager
 
 
 def path_to_mysql_datetime(filepath):
