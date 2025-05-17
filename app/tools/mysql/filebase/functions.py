@@ -1,5 +1,5 @@
 from app.core.exceptions import DatabaseError
-from .pool import filebase_pool
+from .instance import filebase_instance
 from typing import List, Dict, Any
 
 
@@ -22,7 +22,7 @@ def get_file_id_via_hash(sha_hash: str) -> int:
             FROM files 
             WHERE hash = %s
         """
-        result = filebase_pool.execute_read(query,[sha_hash],fetch_one=True)
+        result = filebase_instance.execute_read(query,[sha_hash],fetch_one=True)
         if result is None:
             return 0
         return result['id']
@@ -50,7 +50,7 @@ def insert_file_location(file_id: int, location_id: int) -> bool:
             VALUES 
                 (%s, %s)
         """
-        filebase_pool.execute_write(query, [file_id, location_id])
+        filebase_instance.execute_write(query, [file_id, location_id])
         return True
 
     except DatabaseError as e:
@@ -75,7 +75,7 @@ def get_version_number_via_hash(hash_value: str) -> int:
             FROM files 
             WHERE hash = UNHEX(%s)
         """
-        result = filebase_pool.execute_read(query, [hash_value], fetch_one=True)
+        result = filebase_instance.execute_read(query, [hash_value], fetch_one=True)
         if result is None:
             return 0
         return result['version_number']
@@ -105,7 +105,7 @@ def insert_file(file_metadata: Dict[str, Any]) -> bool:
                 ({placeholders})
         """
         values = tuple(file_metadata.values())
-        filebase_pool.execute_write(query, values,False)
+        filebase_instance.execute_write(query, values,False)
         return True
 
     except DatabaseError as e:

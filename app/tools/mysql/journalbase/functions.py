@@ -1,6 +1,6 @@
 from typing import List, Dict, Any
 from app.core.exceptions import DatabaseError
-from .pool import journalbase_pool
+from .instance import journalbase_instance
 
 def get_entries(search_text: str):
     """
@@ -18,7 +18,7 @@ def get_entries(search_text: str):
         WHERE MATCH(entry) AGAINST (%s IN NATURAL LANGUAGE MODE)
         ORDER BY relevance DESC
         """
-        result = journalbase_pool.execute_read(
+        result = journalbase_instance.execute_read(
             query=query, 
             params=(search_text,search_text),
             fetch_one=False
@@ -45,7 +45,7 @@ def insert_entry(entry_text: str, created_time: str, file_id: int) -> bool:
             (%s, %s, %s)
     """
     try:
-        result = journalbase_pool.execute_write(
+        result = journalbase_instance.execute_write(
             query=insertion,
             params=(entry_text, created_time, file_id),
             many=False

@@ -1,11 +1,11 @@
 from app.core.dbinterface import MySQLInterface
 from app.config import settings
 
-_JOURNALBASE_DB_CONFIG = {
+_FILEBASE_DB_CONFIG = {
     'host': settings.MYSQL_HOST,
     'user': settings.MYSQL_USER,
     'password': settings.MYSQL_PASSWORD,
-    'database': 'journalbase'
+    'database': 'filebase'
 }
 
-journalbase_pool = MySQLInterface(config=_JOURNALBASE_DB_CONFIG)
+filebase_instance = MySQLInterface(config=_FILEBASE_DB_CONFIG)
