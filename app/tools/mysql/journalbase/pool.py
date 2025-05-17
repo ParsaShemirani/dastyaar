@@ -1,4 +1,4 @@
-from app.core.dbpool import MySQLPoolInterface
+from app.core.dbinterface import MySQLInterface
 from app.config import settings
 
 _JOURNALBASE_DB_CONFIG = {
@@ -8,9 +8,4 @@ _JOURNALBASE_DB_CONFIG = {
     'database': 'journalbase'
 }
 
-
-journalbase_pool = MySQLPoolInterface(
-    config=_JOURNALBASE_DB_CONFIG,
-    pool_name="journalbase_pool",
-    pool_size=5,
-)
+journalbase_pool = MySQLInterface(config=_JOURNALBASE_DB_CONFIG)

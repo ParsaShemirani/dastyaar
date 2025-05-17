@@ -1,4 +1,4 @@
-from app.core.dbpool import MySQLPoolInterface
+from app.core.dbinterface import MySQLInterface
 from app.config import settings
 
 _FILEBASE_DB_CONFIG = {
@@ -8,9 +8,4 @@ _FILEBASE_DB_CONFIG = {
     'database': 'filebase'
 }
 
-
-filebase_pool = MySQLPoolInterface(
-    config=_FILEBASE_DB_CONFIG,
-    pool_name="filebase_pool",
-    pool_size=5,
-)
+filebase_pool = MySQLInterface(config=_FILEBASE_DB_CONFIG)

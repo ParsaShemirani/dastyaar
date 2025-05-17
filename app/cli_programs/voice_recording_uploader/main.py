@@ -1,12 +1,24 @@
+import time
+start_time = time.time()
+
 import os
+print(f"os module imported. Time elapsed: {time.time() - start_time:.2f}s")
+
 from typing import Optional, Dict, Any, Tuple
+print(f"typing module imported. Time elapsed: {time.time() - start_time:.2f}s")
 
 #FROM OTHER MODULES
 from app.tools.openai.functions import get_transcription
-from app.tools.utils import functions as utils
-from app.tools.mysql.filebase import functions as filebase_functions
-from app.tools.mysql.journalbase import functions as journalbase_functions
+print(f"OpenAI module imported. Time elapsed: {time.time() - start_time:.2f}s")
 
+from app.tools.utils import functions as utils
+print(f"Utils module imported. Time elapsed: {time.time() - start_time:.2f}s")
+
+from app.tools.mysql.filebase import functions as filebase_functions
+print(f"Filebase module imported. Time elapsed: {time.time() - start_time:.2f}s")
+
+from app.tools.mysql.journalbase import functions as journalbase_functions
+print(f"Journalbase module imported. Time elapsed: {time.time() - start_time:.2f}s")
 
 class FileData:
     """Class to manage file metadata"""
@@ -105,4 +117,6 @@ def main(file_path):
         created_time=file_data.ts,
         file_id=filebase_functions.get_file_id_via_hash(sha_hash=file_data.sha_hash)
     )
-    print("tomatoes")
+
+
+

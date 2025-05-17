@@ -1,31 +1,31 @@
-from mysql.connector import pooling, Error
+from mysql.connector import connect, Error
 from typing import Dict, List, Any, Optional, Union, Tuple
 from app.core.exceptions import DatabaseError
 
 
-class MySQLPoolInterface:
+class MySQLInterface:
     """
-    Provides MySQL connection pooling and helper methods for executing
+    Provides MySQL connection and helper methods for executing
     read and write operations.
     """
 
-    def __init__(self,
-                 config: Dict[str, Any],
-                 pool_name: str = "mypool",
-                 pool_size: int = 5):
+    def __init__(self, config: Dict[str, Any]):
         """
-        Initializes the connection pool.
+        Initializes the database connection.
 
         Args:
             config: MySQL connection parameters.
-            pool_name: Name of the connection pool.
-            pool_size: Number of connections in the pool.
         """
-        self.pool = pooling.MySQLConnectionPool(
-            pool_name=pool_name,
-            pool_size=pool_size,
-            **config
-        )
+        self.config = config
+        self.connection = None
+
+    def _ensure_connection(self):
+        """Ensures there is an active connection, creating one if needed."""
+        try:
+            if self.connection is None or not self.connection.is_connected():
+                self.connection = connect(**self.config)
+        except Error as e:
+            raise DatabaseError(f"Error connecting to database: {e}")
 
     def execute_read(
         self,
@@ -48,8 +48,8 @@ class MySQLPoolInterface:
         Raises:
             DatabaseError: If the query execution fails.
         """
-        conn = self.pool.get_connection()
-        cursor = conn.cursor(dictionary=True)
+        self._ensure_connection()
+        cursor = self.connection.cursor(dictionary=True)
         try:
             cursor.execute(query, params)
             if fetch_one:
@@ -60,8 +60,6 @@ class MySQLPoolInterface:
             raise DatabaseError(f"Error executing read query: {e}")
         finally:
             cursor.close()
-            conn.close()
-
 
     def execute_write(
         self,
@@ -83,21 +81,30 @@ class MySQLPoolInterface:
         Raises:
             DatabaseError: If the write operation fails.
         """
-        conn = self.pool.get_connection()
-        cursor = conn.cursor()
+        self._ensure_connection()
+        cursor = self.connection.cursor()
         try:
             if many:
                 cursor.executemany(query, params)  # type: ignore[arg-type]
             else:
                 cursor.execute(query, params)      # type: ignore[arg-type]
-            conn.commit()
+            self.connection.commit()
             return cursor.rowcount
         except Error as e:
-            conn.rollback()
+            self.connection.rollback()
             raise DatabaseError(f"Error executing write query: {e}")
         finally:
             cursor.close()
-            conn.close()
+
+    def close(self):
+        """Closes the database connection."""
+        if self.connection:
+            self.connection.close()
+            self.connection = None
+
+    def __del__(self):
+        """Ensures the connection is closed when the object is destroyed."""
+        self.close()
 
 
 # Example usage
@@ -111,13 +118,13 @@ if __name__ == "__main__":
         "database": "your_database",
     }
 
-    # Initialize the pool interface
-    db_pool = MySQLPoolInterface(config=config, pool_name="testpool", pool_size=3)
+    # Initialize the database interface
+    db = MySQLInterface(config=config)
 
     # Example: Insert a new user
     try:
         insert_query = "INSERT INTO users (name) VALUES (%s)"
-        inserted_rows = db_pool.execute_write(insert_query, params=("Alice",))
+        inserted_rows = db.execute_write(insert_query, params=("Alice",))
         print(f"Inserted rows: {inserted_rows}")
     except DatabaseError as e:
         print(f"Insert failed: {e}")
@@ -125,7 +132,7 @@ if __name__ == "__main__":
     # Example: Read users
     try:
         select_query = "SELECT id, name FROM users"
-        users = db_pool.execute_read(select_query)
+        users = db.execute_read(select_query)
         print("Users:", users)
     except DatabaseError as e:
         print(f"Select failed: {e}")
@@ -133,7 +140,9 @@ if __name__ == "__main__":
     # Example: Fetch a single user
     try:
         select_one_query = "SELECT id, name FROM users WHERE name = %s"
-        user = db_pool.execute_read(select_one_query, params=("Alice",), fetch_one=True)
+        user = db.execute_read(select_one_query, params=("Alice",), fetch_one=True)
         print("Fetched user:", user)
     except DatabaseError as e:
         print(f"Fetch one failed: {e}")
+    finally:
+        db.close()
