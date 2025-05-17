@@ -1,87 +1,115 @@
-
 import os
-from openai import OpenAI
-from dotenv import load_dotenv
-from datetime import datetime
-from zoneinfo import ZoneInfo
-
-#FROM OTHER MODULES
+from typing import Optional, Dict, Any, Tuple
 from app.tools.utils import functions as utils
-from app.tools.mysql.filebase.functions import FileDBManager
-from time_configurator import new_ts
+from app.tools.mysql.filebase import functions as filebase_functions
+from app.cli_programs.file_ingestor.time_configurator import new_ts
+from app.cli_programs.file_ingestor import description_recorder
 
 
-class SQLFileData:
+
+
+
+
+
+class FileData:
+    """Class to manage file metadata"""
     def __init__(self):
-        self.sha_hash = None
-        self.name = None
-        self.ts = None
-        self.ts_precision = None
-        self.size = None
-        self.extension = None
-        self.description = None
-        self.version_number = None
+        self.hash: None
+        self.name: None
+        self.ts: None
+        self.ts_precision: None
+        self.size: None
+        self.extension: None
+        self.description: None
+        self.version_number: None
 
-    def get_file_metadata(self, file_path):
-        """Update instance attributes with metadata from the given file."""
-        # Assign binary sha_hash to sha_hash attribute
-        self.sha_hash = utils.generate_sha_hash(file_path, False)
-        # Get hexa sha_hash, make new filename based off of it
-        hexa_sha_hash_current = utils.generate_sha_hash(file_path, True)
-        self.name = utils.generate_voicerec_filename(file_path, hexa_sha_hash_current)
-        # Other attributes
-        self.version_number = 1
-        self.extension = utils.get_file_extension(file_path)
-        self.ts = "NONE" #MEEANT TO UPDATE
+    def collect_initial_metadata(self, file_path: str) -> None:
+        """Collect metadata that can be gathered immediately from the file"""
+        if not os.path.isfile(file_path):
+            raise FileNotFoundError(f"The file {file_path} does not exist")
+        
+        self.hash = utils.generate_sha_hash(file_path=file_path,hex_output=False)
         self.size = utils.get_file_size(file_path)
+        self.extension = utils.get_file_extension(file_path)
 
-    def to_db_dict(self) -> dict:
-        """Convert the object's attributes to a database-ready dictionary"""
+    def determine_version(self, file_path: str) -> None:
+        """Determine the version number for the file"""
+        # Check if file already exists in database
+        if filebase_functions.get_file_id_via_hash(sha_hash=self.hash) != 0:
+            raise ValueError("File already exists in the database")
+        # Try to get hash from current filename
+        filename_hash = utils.extract_hash_from_filename(file_path=file_path)
+        if filename_hash == None:
+            self.version_number = 1
+        else:
+            self.version_number = filebase_functions.get_version_number_via_hash(hash_value=filename_hash) + 1
+
+    def handle_timestamp(self, file_path: str) -> None:
+        """Handle file timestamp, including manual override option"""
+        # Set initial timestamp based on version
+        if self.version_number == 1:
+            self.ts = utils.get_created_time(file_path)
+        else:
+            self.ts = utils.get_modified_time(file_path)
+        
+        print(f"File timestamp gathered: {self.ts}")
+        if input("Type 'm' to manually override gathered timestamp: ").lower() == 'm':
+            self.ts, self.ts_precision = new_ts()
+
+    def generate_filename(self, file_path: str) -> None:
+        """Generate the new filename based on SHA hash"""
+        self.name = utils.generate_new_filename(
+            file_path=file_path,
+            bin_hash=self.hash,
+            version_number=self.version_number
+        )
+
+    def collect_description(self) -> None:
+        """Collect file description using audio recording"""
+        self.description = description_recorder.main()
+
+    def to_db_dict(self) -> Dict[str, Any]:
+        """Convert object attributes to database-ready dictionary"""
         return {
-            'name': self.name,
-            'sha_hash': self.sha_hash,
-            'ts': self.ts,
-            'size': self.size,
-            'extension': self.extension,
-            'version_number': self.version_number
+            "hash": self.hash,
+            "name": self.name,
+            "ts": self.ts,
+            "ts_precision": self.ts_precision,
+            "size": self.size,
+            "extension": self.extension,
+            "description": self.description,
+            "version_number": self.version_number
         }
-
-def process_file(file_path):
-    file_data = SQLFileData()
-    file_data.get_file_metadata(file_path)
-
-    #Try to get the hash from the current filename. If there is no hash,
-    #that means it has not been in the base before.
-    #If there is a hash, we will get the version number from the database.
-    file_db = FileDBManager()
-    filename_hash = utils.extract_hash_from_filename(file_path)
-    if filename_hash is None:
-        version_in_base = 0
-    else:
-        try:
-            version_in_base = file_db.get_version_in_base(filename_hash)
-        except Exception as e:
-            print(f"Error retrieving version from database: {e}")
-            exit()
-
-    file_data.version_number = version_in_base + 1
-
-    if version_in_base == 0:
-        file_data.ts = utils.get_created_time(file_path)
-    else:
-        file_data.ts = utils.get_modified_time(file_path)
     
-    man_ts = input("Type m to manually override gathered ts: ")
+    def process_location(self, location_id: int) -> None:
+        file_id = filebase_functions.get_file_id_via_hash(sha_hash=self.hash)
+        filebase_functions.insert_file_location(file_id=file_id,location_id=location_id)
 
-    if man_ts != "":
-        file_data.ts, file_data.ts_precision = new_ts()
+file_path = 'james'
+
+def main(file_path):
+
+    # Initialize and process file data
+    file_data = FileData()
     
-    hexa_sha_hash_current = utils.generate_sha_hash(file_path,True)
-    file_data.name = utils.generate_new_filename(file_path, hexa_sha_hash_current, version_in_base)   
+    # Step 1: Collect initial metadata
+    file_data.collect_initial_metadata(file_path)
+    
+    # Step 2: Determine version
+    file_data.determine_version(file_path)
+    
+    # Step 3: Handle timestamp
+    file_data.handle_timestamp(file_path)
+    
+    # Step 4: Generate new filename
+    file_data.generate_filename(file_path)
+    
+    # Step 5: Collect description
+    file_data.collect_description()
 
-    file_db.insert_file(file_data.to_db_dict())
-    file_id = file_db.get_file_id(file_data.sha_hash)
-    if file_id:
-        #Insert the file_id along with storage location 1 for file_location table
-        file_db.insert_location(file_id,1)
+    # Step 6: Insert into database
+    metadata = file_data.to_db_dict()
+    filebase_functions.insert_file(file_metadata=metadata)
 
+    # Step 8: Insert location data
+    file_data.process_location(location_id=1)

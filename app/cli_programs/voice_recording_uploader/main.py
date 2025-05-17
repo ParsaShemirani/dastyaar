@@ -1,44 +1,29 @@
+import time
+start_time = time.time()
+
 import os
-from openai import OpenAI
-from dotenv import load_dotenv
-from datetime import datetime
-from zoneinfo import ZoneInfo
+print(f"os module imported. Time elapsed: {time.time() - start_time:.2f}s")
+
+from typing import Optional, Dict, Any, Tuple
+print(f"typing module imported. Time elapsed: {time.time() - start_time:.2f}s")
 
 #FROM OTHER MODULES
 from app.tools.openai.functions import get_transcription
+print(f"OpenAI module imported. Time elapsed: {time.time() - start_time:.2f}s")
+
 from app.tools.utils import functions as utils
-from app.tools.mysql.filebase.functions import FileDBManager
-from app.tools.mysql.journalbase.functions import JournalDBManager
+print(f"Utils module imported. Time elapsed: {time.time() - start_time:.2f}s")
 
+from app.tools.mysql.filebase import functions as filebase_functions
+print(f"Filebase module imported. Time elapsed: {time.time() - start_time:.2f}s")
 
-def path_to_mysql_datetime(filepath):
-    """
-    Given a file path whose basename is in the form
-      YYYYMMDD-HHMMSS.ext
-    interprets that timestamp in America/Los_Angeles (PST/PDT),
-    converts it to UTC, and returns a MySQL DATETIME string.
-    """
-    # 1) Extract filename and strip extension
-    filename = os.path.basename(filepath)
-    base_name = filename.split('.')[0]       # e.g. "20250511-203057"
-    
-    # 2) Split date/time and parse to naive datetime
-    date_part, time_part = base_name.split('-')
-    dt_naive = datetime.strptime(date_part + time_part, "%Y%m%d%H%M%S")
-    
-    # 3) Localize to LA time (zoneinfo will handle PST vs PDT)
-    la_tz = ZoneInfo("America/Los_Angeles")
-    dt_local = dt_naive.replace(tzinfo=la_tz)
-    
-    # 4) Convert to UTC
-    dt_utc = dt_local.astimezone(ZoneInfo("UTC"))
-    
-    # 5) Format for MySQL DATETIME (no timezone suffix)
-    return dt_utc.strftime("%Y-%m-%d %H:%M:%S")
+from app.tools.mysql.journalbase import functions as journalbase_functions
+print(f"Journalbase module imported. Time elapsed: {time.time() - start_time:.2f}s")
 
-class SQLFileData:
+class FileData:
+    """Class to manage file metadata"""
     def __init__(self):
-        self.sha_hash = None
+        self.hash = None
         self.name = None
         self.ts = None
         self.ts_precision = None
@@ -47,68 +32,91 @@ class SQLFileData:
         self.description = None
         self.version_number = None
 
-    def get_file_metadata(self, file_path):
-        """Update instance attributes with metadata from the given file."""
-        # Assign binary sha_hash to sha_hash attribute
-        self.sha_hash = utils.generate_sha_hash(file_path, False)
-        # Get hexa sha_hash, make new filename based off of it
-        hexa_sha_hash_current = utils.generate_sha_hash(file_path, True)
-        self.name = utils.generate_voicerec_filename(file_path, hexa_sha_hash_current)
-        # Other attributes
-        self.version_number = 1
-        self.extension = utils.get_file_extension(file_path)
-        self.ts = path_to_mysql_datetime(file_path)
+    def collect_initial_metadata(self, file_path: str) -> None:
+        """Collect metadata that can be gathered immediately from the file"""
+        if not os.path.isfile(file_path):
+            raise FileNotFoundError(f"The file {file_path} does not exist")
+        
+        self.hash = utils.generate_sha_hash(file_path=file_path,hex_output=False)
         self.size = utils.get_file_size(file_path)
+        self.extension = utils.get_file_extension(file_path)
 
-    def to_db_dict(self) -> dict:
-        """Convert the object's attributes to a database-ready dictionary"""
+    def determine_version(self, file_path: str) -> None:
+        """Determine the version number for the file"""
+        # Check if file already exists in database
+        if filebase_functions.get_file_id_via_hash(sha_hash=self.hash) != 0:
+            raise ValueError("File already exists in the database")
+        #Version number will always be one for voice journal uploads
+        self.version_number = 1
+
+
+    def generate_filename(self, file_path: str) -> None:
+        """Generate the new filename based on SHA hash, specific to voice recordings"""
+        self.name = utils.generate_voicerec_filename(
+            file_path=file_path,
+            bin_hash=self.hash
+        )
+
+    def generate_timestamp(self,file_path:str) -> None:
+        """Generate the file timestamp based on its voice rec filename"""
+        self.ts = utils.path_to_mysql_datetime(file_path=file_path)
+
+    def to_db_dict(self) -> Dict[str, Any]:
+        """Convert object attributes to database-ready dictionary"""
         return {
-            'name': self.name,
-            'sha_hash': self.sha_hash,
-            'ts': self.ts,
-            'size': self.size,
-            'extension': self.extension,
-            'version_number': self.version_number
+            key: value for key, value in {
+                "hash": self.hash,
+                "name": self.name,
+                "ts": self.ts,
+                "ts_precision": self.ts_precision,
+                "size": self.size,
+                "extension": self.extension,
+                "description": self.description,
+                "version_number": self.version_number
+            }.items() if value is not None
         }
+    
+    def process_location(self, location_id: int) -> None:
+        file_id = filebase_functions.get_file_id_via_hash(sha_hash=self.hash)
+        filebase_functions.insert_file_location(file_id=file_id,location_id=location_id)
 
-def process_file(file_path):
+
+def main(file_path):
     print("Generating transcription")
-    transcription = get_transcription(file_path)
+    transcription = get_transcription(file_path=file_path)
     print("Transcription:")
     print(transcription)
     process_choice = input("Press enter to process, press s to skip file: ")
-
-    if process_choice == "":
-        # Initialize database managers
-        file_db = FileDBManager()
-        journal_db = JournalDBManager()
-        
-        # Get file metadata
-        file_data = SQLFileData()
-        file_data.get_file_metadata(file_path)
-        
-        # Check if file already exists in database
-        if file_db.check_hash_exists(file_data.sha_hash):
-            print(f"File with hash {file_data.sha_hash} already exists in database")
-            return None
-        
-        #Insert the file into segate firstmassbase (location id 1)
-        new_path = utils.get_new_full_path(file_path,file_data.name)
-        utils.renamer(file_path,new_path)
-        utils.copy_file_with_metadata(new_path,"/Volumes/Seagate_Hub/firstmassbase")
-            
-        # Insert file metadata into database
-        if file_db.insert_file(file_data.to_db_dict()):
-            # Get the file ID for the journal entry
-            file_id = file_db.get_file_id(file_data.sha_hash)
-            if file_id:
-                #Insert the file_id along with storage location 1 for file_location table
-                file_db.insert_location(file_id,1)
-                # Insert the transcription as a journal entry
-                journal_db.insert_entry(transcription, file_data.ts, file_id)
-                print("File and transcription processed successfully")
-                return file_data
-        
-        print("Error processing file")
+    if process_choice != "":
         return None
-    return None
+    # Initialize and process file data
+    file_data = FileData()
+    
+    # Step 1: Collect initial metadata
+    file_data.collect_initial_metadata(file_path=file_path)
+
+    # Step 2: Determine version
+    file_data.determine_version(file_path=file_path)
+
+    # Step 3: Determine timestamp from filename
+    file_data.generate_timestamp(file_path=file_path)
+
+    # Step 4: Generate new filename
+    file_data.generate_filename(file_path)
+
+    # Step 5: Insert into database
+    metadata = file_data.to_db_dict()
+    filebase_functions.insert_file(file_metadata=metadata)
+
+    # Step 6: Insert location data
+    file_data.process_location(location_id=1)
+
+    # Step 7: Insert entry into journalbase
+    journalbase_functions.insert_entry(
+        entry_text=transcription,
+        created_time=file_data.ts,
+        file_id=filebase_functions.get_file_id_via_hash(sha_hash=file_data.hash)
+    )
+
+
+

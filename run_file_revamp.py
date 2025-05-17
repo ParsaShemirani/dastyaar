@@ -6,9 +6,9 @@ project_root = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, project_root)
 
 # Import function from cli programs
-from app.cli_programs.file_ingestor.mainrevamp import main as process_file
+from app.cli_programs.file_ingestor.main import main as process_file
 
-folder_path = '/Users/parsashemirani/Main/Inbox/jamie'
+folder_path = '/Users/parsashemirani/Main/Inbox/testuploadersjamie'
 
 def main():
     for filename in os.listdir(folder_path):    

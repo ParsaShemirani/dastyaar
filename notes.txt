@@ -1,0 +1,13 @@
+
+To do:
+search file via description funcion for filebase functions.
+
+
+
+
+
+Chat interface via flask website
+Ability to run functions from flask website and see their results
+
+Idea: make flask website that has an interactive python interface. There I can see what processes
+I can automate the most via AI and what programs I can make with the tools that I am developing.

@@ -5,6 +5,7 @@ import os
 import re
 import datetime
 import shutil
+from zoneinfo import ZoneInfo
 
 
 def generate_sha_hash(file_path: Union[str, Path], hex_output: bool = True) -> Union[str, bytes]:
@@ -72,20 +73,26 @@ def get_file_size(full_path: Union[str, Path]) -> int:
         raise
 
 
-def extract_hash_from_filename(file_path: str) -> Optional[str]:
+def extract_hash_from_filename(file_path: str) -> Optional[bytes]:
     """
-    Extract SHA-256 hash from a filename that follows the pattern -v<number>-<hash>.
+    Extract binary SHA-256 hash from a filename that follows the pattern -v<number>-<hash>.
     
     Args:
         file_path (str): The file path or name to extract hash from
         
     Returns:
-        Optional[str]: The extracted 64-character hex hash if found, None otherwise
+        Optional[bytes]: The binary sha-256 hash converted from hex if found, None otherwise
     """
     pattern = r'-v\d+-([a-f0-9]{64})(?:\.\w+)?$'
     match = re.search(pattern, file_path)
     
-    return match.group(1) if match else None
+    hex_hash = match.group(1) if match else None
+    
+    if hex_hash:
+        # Convert hex string to binary (bytes)
+        return bytes.fromhex(hex_hash)
+            
+    return None
 
 
 def get_file_extension(full_path: str) -> str:
@@ -150,13 +157,13 @@ def get_current_time() -> str:
     return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 
-def generate_voicerec_filename(file_path: str, new_hash: str) -> str:
+def generate_voicerec_filename(file_path: str, bin_hash: bytes) -> str:
     """
     Generate a new filename for journal voice memo entries.
     
     Args:
         file_path (str): Current file path
-        new_hash (str): Hash to be included in new filename        
+        bin_hash (bytes): Binary hash to be included in new filename        
     Returns:
         str: New filename with updated version and hash
     """
@@ -164,7 +171,8 @@ def generate_voicerec_filename(file_path: str, new_hash: str) -> str:
     
     name, ext = os.path.splitext(base_name)
     journal_prefix = "journalbase_entry"
-    return f"{journal_prefix}-v1-{new_hash}{ext}"
+    hex_hash = bin_hash.hex()
+    return f"{journal_prefix}-v1-{hex_hash}{ext}"
 
 
 def get_new_full_path(current_path: str, new_name: str) -> str:
@@ -257,13 +265,13 @@ def copy_file_with_metadata(src_path: str, dst_dir: str) -> None:
         raise OSError(f"Error copying file: {e}")
 
 
-def generate_new_filename(file_path: str, hex_hash: str, version_number: int) -> str:
+def generate_new_filename(file_path: str, bin_hash: bytes, version_number: int) -> str:
     """
     Generate a new filename with version number and hash.
     
     Args:
         file_path (str): Full path or filename containing version number and hash
-        hex_hash (str): SHA-256 hash to include in filename
+        bin_hash (bytes): Binary SHA-256 hash, will be converted to hex_hash to put in filename
         version_number (int): Version number to include in filename
         
     Returns:
@@ -272,6 +280,9 @@ def generate_new_filename(file_path: str, hex_hash: str, version_number: int) ->
     Raises:
         ValueError: If the filename format is invalid for version numbers > 1
     """
+    # Convert binary hash to hex
+    hex_hash = bin_hash.hex()
+    
     try:
         base_name = os.path.basename(file_path)
 
@@ -295,3 +306,32 @@ def generate_new_filename(file_path: str, hex_hash: str, version_number: int) ->
     except Exception as e:
         print(f"Error generating new filename for {file_path}: {e}")
         raise
+
+
+def path_to_mysql_datetime(file_path: str) -> str:
+    """
+    Convert a filename timestamp to MySQL DATETIME format in UTC.
+    
+    Args:
+        file_path (str): Path to file with name format 'YYYYMMDD-HHMMSS.ext'
+        
+    Returns:
+        str: UTC timestamp in MySQL DATETIME format ('YYYY-MM-DD HH:MM:SS')
+    """
+    # Extract filename and strip extension
+    filename = os.path.basename(file_path)
+    base_name = filename.split('.')[0]  # e.g. "20250511-203057"
+    
+    # Split date/time and parse to naive datetime
+    date_part, time_part = base_name.split('-')
+    dt_naive = datetime.datetime.strptime(date_part + time_part, "%Y%m%d%H%M%S")
+    
+    # Localize to LA time (zoneinfo will handle PST vs PDT)
+    la_tz = ZoneInfo("America/Los_Angeles")
+    dt_local = dt_naive.replace(tzinfo=la_tz)
+    
+    # Convert to UTC
+    dt_utc = dt_local.astimezone(ZoneInfo("UTC"))
+    
+    # Format for MySQL DATETIME (no timezone suffix)
+    return dt_utc.strftime('%Y-%m-%d %H:%M:%S')
