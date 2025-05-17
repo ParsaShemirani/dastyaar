@@ -1,4 +1,10 @@
 
+To do:
+search file via description funcion for filebase functions.
+
+
+
+
 
 Chat interface via flask website
 Ability to run functions from flask website and see their results
