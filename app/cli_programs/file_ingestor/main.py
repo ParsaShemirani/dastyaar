@@ -14,7 +14,7 @@ from app.cli_programs.file_ingestor import description_recorder
 class FileData:
     """Class to manage file metadata"""
     def __init__(self):
-        self.sha_hash: None
+        self.hash: None
         self.name: None
         self.ts: None
         self.ts_precision: None
@@ -28,14 +28,14 @@ class FileData:
         if not os.path.isfile(file_path):
             raise FileNotFoundError(f"The file {file_path} does not exist")
         
-        self.sha_hash = utils.generate_sha_hash(file_path=file_path,hex_output=False)
+        self.hash = utils.generate_sha_hash(file_path=file_path,hex_output=False)
         self.size = utils.get_file_size(file_path)
         self.extension = utils.get_file_extension(file_path)
 
     def determine_version(self, file_path: str) -> None:
         """Determine the version number for the file"""
         # Check if file already exists in database
-        if filebase_functions.get_file_id_via_hash(sha_hash=self.sha_hash) != 0:
+        if filebase_functions.get_file_id_via_hash(sha_hash=self.hash) != 0:
             raise ValueError("File already exists in the database")
         # Try to get hash from current filename
         filename_hash = utils.extract_hash_from_filename(file_path=file_path)
@@ -60,7 +60,7 @@ class FileData:
         """Generate the new filename based on SHA hash"""
         self.name = utils.generate_new_filename(
             file_path=file_path,
-            bin_hash=self.sha_hash,
+            bin_hash=self.hash,
             version_number=self.version_number
         )
 
@@ -71,7 +71,7 @@ class FileData:
     def to_db_dict(self) -> Dict[str, Any]:
         """Convert object attributes to database-ready dictionary"""
         return {
-            "sha_hash": self.sha_hash,
+            "hash": self.hash,
             "name": self.name,
             "ts": self.ts,
             "ts_precision": self.ts_precision,
@@ -82,7 +82,7 @@ class FileData:
         }
     
     def process_location(self, location_id: int) -> None:
-        file_id = filebase_functions.get_file_id_via_hash(sha_hash=self.sha_hash)
+        file_id = filebase_functions.get_file_id_via_hash(sha_hash=self.hash)
         filebase_functions.insert_file_location(file_id=file_id,location_id=location_id)
 
 file_path = 'james'

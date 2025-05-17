@@ -20,7 +20,7 @@ def get_file_id_via_hash(sha_hash: str) -> int:
             SELECT 
                 id 
             FROM files 
-            WHERE sha_hash = %s
+            WHERE hash = %s
         """
         result = filebase_pool.execute_read(query,[sha_hash],fetch_one=True)
         if result is None:
@@ -73,7 +73,7 @@ def get_version_number_via_hash(hash_value: str) -> int:
             SELECT 
                 version_number 
             FROM files 
-            WHERE sha_hash = UNHEX(%s)
+            WHERE hash = UNHEX(%s)
         """
         result = filebase_pool.execute_read(query, [hash_value], fetch_one=True)
         if result is None:
