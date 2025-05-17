@@ -6,9 +6,9 @@ project_root = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, project_root)
 
 # Import function from cli programs
-from app.cli_programs.voice_recording_uploader.old_main import process_file
+from app.cli_programs.voice_recording_uploader.main import main as process_file
 
-folder_path = '/Users/parsashemirani/Main/Inbox/voicemilitary/testrunners'
+folder_path = '/Users/parsashemirani/Main/Inbox/testuploadersjamie'
 
 def main():
     for filename in os.listdir(folder_path):    
@@ -18,7 +18,7 @@ def main():
             continue  # Skip this file
 
         print(f"Processing file: {filename}")
-        process_file(file_path)
+        process_file(file_path=file_path)
 
 if __name__ == "__main__":
     main()

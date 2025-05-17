@@ -11,14 +11,14 @@ from app.tools.mysql.journalbase import functions as journalbase_functions
 class FileData:
     """Class to manage file metadata"""
     def __init__(self):
-        self.sha_hash: None
-        self.name: None
-        self.ts: None
-        self.ts_precision: None
-        self.size: None
-        self.extension: None
-        self.description: None
-        self.version_number: None
+        self.sha_hash = None
+        self.name = None
+        self.ts = None
+        self.ts_precision = None
+        self.size = None
+        self.extension = None
+        self.description = None
+        self.version_number = None
 
     def collect_initial_metadata(self, file_path: str) -> None:
         """Collect metadata that can be gathered immediately from the file"""
@@ -52,14 +52,16 @@ class FileData:
     def to_db_dict(self) -> Dict[str, Any]:
         """Convert object attributes to database-ready dictionary"""
         return {
-            "sha_hash": self.sha_hash,
-            "name": self.name,
-            "ts": self.ts,
-            "ts_precision": self.ts_precision,
-            "size": self.size,
-            "extension": self.extension,
-            "description": self.description,
-            "version_number": self.version_number
+            key: value for key, value in {
+                "sha_hash": self.sha_hash,
+                "name": self.name,
+                "ts": self.ts,
+                "ts_precision": self.ts_precision,
+                "size": self.size,
+                "extension": self.extension,
+                "description": self.description,
+                "version_number": self.version_number
+            }.items() if value is not None
         }
     
     def process_location(self, location_id: int) -> None:
@@ -77,7 +79,7 @@ def main(file_path):
         return None
     # Initialize and process file data
     file_data = FileData()
-
+    
     # Step 1: Collect initial metadata
     file_data.collect_initial_metadata(file_path=file_path)
 
@@ -101,5 +103,6 @@ def main(file_path):
     journalbase_functions.insert_entry(
         entry_text=transcription,
         created_time=file_data.ts,
-        file_id=
+        file_id=filebase_functions.get_file_id_via_hash(sha_hash=file_data.sha_hash)
     )
+    print("tomatoes")
