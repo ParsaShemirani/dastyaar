@@ -111,3 +111,26 @@ def insert_file(file_metadata: Dict[str, Any]) -> bool:
     except DatabaseError as e:
         # Re-raise the database error with more context
         raise DatabaseError(f"Failed to insert file: {str(e)}")
+    
+def search_files_description(search_text:str):
+    """
+    Search for all fields of file entries using full text search on the "descriptiion"
+    column.
+    """
+    try:
+        query = """
+        SELECT
+            *,
+            MATCH(description) AGAINST (%s IN NATURAL LANGUAGE MODE) AS relevance
+        FROM files
+        WHERE MATCH(description) AGAINST (%s IN NATURAL LANGUAGE MODE)
+        ORDER BY relevance DESC
+        """
+        result = filebase_instance.execute_read(
+            query=query,
+            params=(search_text,search_text),
+            fetch_one=False
+        )
+        return result
+    except Exception as e:
+        raise DatabaseError(f"An error occurred while fetching files: {str(e)}")
