@@ -5,7 +5,7 @@ _JOURNALBASE_DB_CONFIG = {
     'host': settings.MYSQL_HOST,
     'user': settings.MYSQL_USER,
     'password': settings.MYSQL_PASSWORD,
-    'database': 'journalbase'
+    'database': 'journalbase_test'
 }
 
 journalbase_instance = MySQLInterface(config=_JOURNALBASE_DB_CONFIG)
