@@ -32,25 +32,35 @@ def get_file_id_via_hash(sha_hash: str) -> int:
         raise DatabaseError(f"Failed to check has existence: {str(e)}")
     
 
-def insert_file_location(file_id: int, location_id: int) -> bool:
+def insert_file_location(file_id: int, location_name: str) -> bool:
     """
-    Insert a new row for a file and its storage location
+    Insert a new row for a file and its storage location using location name
     
     Args:
         file_id (int): The ID of the file
-        location_id (int): The ID of the storage location
+        location_name (str): The name of the location
         
     Returns:
         bool: True if insertion successful, False if failed
     """
     try:
-        query = """
+        # First, verify the location exists
+        check_query = """
+            SELECT id FROM locations WHERE location = %s
+        """
+        location_result = filebase_instance.execute_read(check_query, [location_name], fetch_one=True)
+        
+        if location_result is None:
+            raise DatabaseError(f"Location with name '{location_name}' not found")
+        
+        # Insert into file_location table using the location_id from the result
+        insert_query = """
             INSERT INTO file_location
                 (file_id, location_id)
             VALUES 
                 (%s, %s)
         """
-        filebase_instance.execute_write(query, [file_id, location_id])
+        filebase_instance.execute_write(insert_query, [file_id, location_result['id']])
         return True
 
     except DatabaseError as e:
@@ -58,22 +68,26 @@ def insert_file_location(file_id: int, location_id: int) -> bool:
         raise DatabaseError(f"Failed to insert file location: {str(e)}")
     
 
-def get_version_number_via_hash(hash_value: str) -> int:
+def get_version_number_via_hash(hash_value: bytes) -> int:
     """
     Get the version number of a file using its binary SHA hash.
     
     Args:
-        hash_value (str): The binary SHA-256 hash of the file
+        hash_value (bytes): The binary SHA-256 hash of the file
         
     Returns:
         int: The version number if found, 0 if not found.
     """
     try:
+        # Ensure the hash is in bytes format
+        if not isinstance(hash_value, bytes):
+            raise TypeError("hash_value must be bytes")
+            
         query = """
             SELECT 
                 version_number 
             FROM files 
-            WHERE hash = UNHEX(%s)
+            WHERE hash = %s
         """
         result = filebase_instance.execute_read(query, [hash_value], fetch_one=True)
         if result is None:
@@ -111,3 +125,26 @@ def insert_file(file_metadata: Dict[str, Any]) -> bool:
     except DatabaseError as e:
         # Re-raise the database error with more context
         raise DatabaseError(f"Failed to insert file: {str(e)}")
+    
+def search_files_description(search_text:str):
+    """
+    Search for all fields of file entries using full text search on the "descriptiion"
+    column.
+    """
+    try:
+        query = """
+        SELECT
+            *,
+            MATCH(description) AGAINST (%s IN NATURAL LANGUAGE MODE) AS relevance
+        FROM files
+        WHERE MATCH(description) AGAINST (%s IN NATURAL LANGUAGE MODE)
+        ORDER BY relevance DESC
+        """
+        result = filebase_instance.execute_read(
+            query=query,
+            params=(search_text,search_text),
+            fetch_one=False
+        )
+        return result
+    except Exception as e:
+        raise DatabaseError(f"An error occurred while fetching files: {str(e)}")
