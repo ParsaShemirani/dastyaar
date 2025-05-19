@@ -161,7 +161,7 @@ def main(file_path):
     filebase_functions.insert_file(file_metadata=metadata)
 
     # Step 6: Insert location data
-    file_data.process_location(location_name='firstmacbase')
+    file_data.process_location(location_name='firstmacbase_test')
 
     # Step 7: Insert entry into journalbase
     journalbase_functions.insert_entry(

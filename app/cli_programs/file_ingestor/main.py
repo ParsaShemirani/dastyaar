@@ -170,12 +170,13 @@ def main(file_path):
         # Step 5: Collect description
         file_data.collect_description()
 
+
         # Step 6: Insert into database
         metadata = file_data.to_db_dict()
         filebase_functions.insert_file(file_metadata=metadata)
 
         # Step 8: Insert location data
-        file_data.process_location(location_name='firstmacbase')
+        file_data.process_location(location_name='firstmacbase_test')
         file_data.rename_upload(file_path=file_path)
 
     #Step 8: Remove file
