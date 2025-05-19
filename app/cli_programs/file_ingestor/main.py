@@ -4,9 +4,8 @@ from app.tools.utils import functions as utils
 from app.tools.mysql.filebase import functions as filebase_functions
 from app.cli_programs.file_ingestor.time_configurator import new_ts
 from app.cli_programs.file_ingestor import description_recorder
-
-
-
+import shutil
+import subprocess
 
 
 
@@ -83,9 +82,60 @@ class FileData:
             }.items() if value is not None
         }
     
-    def process_location(self, location_id: int) -> None:
+    def process_location(self, location_name: str) -> None:
         file_id = filebase_functions.get_file_id_via_hash(sha_hash=self.hash)
-        filebase_functions.insert_file_location(file_id=file_id,location_id=location_id)
+        filebase_functions.insert_file_location(file_id=file_id,location_name=location_name)
+
+    def rename_upload(self, file_path: str) -> str:
+        """Rename the file on the system, copy it over to the initial base location
+        
+        Args:
+            file_path (str): The original file path
+            
+        Returns:
+            str: The new file path with the generated name
+        """
+        # Get the directory of the original file
+        directory = os.path.dirname(file_path)
+        
+        # Create the new file path using self.name as the filename
+        new_file_path = os.path.join(directory, self.name)
+        
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(f"Source file {file_path} does not exist")
+        
+        if os.path.exists(new_file_path):
+            raise FileExistsError(f"Destination file {new_file_path} already exists")
+        os.rename(src=file_path,dst=new_file_path)
+
+        firstmacbase_dir = '/Users/parsashemirani/Main/firstmacbase'
+        #Make base path and move it there
+        base_path = os.path.join(firstmacbase_dir, self.name)
+        try:
+            # Copy the file with its metadata
+            shutil.copy2(new_file_path, base_path)
+
+            # Print confirmation message
+            print(f"File '{new_file_path}' has been copied to '{base_path}' with metadata.")
+        except Exception as e:
+            print(f"Error: {e}")
+
+    def remover(self,file_path: str,new_path: bool) -> str:
+        "Remove the file"
+
+        if new_path == True:
+            # Get the directory of the original file
+            directory = os.path.dirname(file_path)
+            
+            # Create the new file path using self.name as the filename
+            new_file_path = os.path.join(directory, self.name)
+            os.remove(new_file_path)
+            print(f"File {new_file_path} removed")
+        else:
+            os.remove(path=file_path)
+            print(f"File {file_path} removed")
+
+        
 
 file_path = 'james'
 
@@ -97,21 +147,39 @@ def main(file_path):
     # Step 1: Collect initial metadata
     file_data.collect_initial_metadata(file_path)
     
-    # Step 2: Determine version
-    file_data.determine_version(file_path)
+    # Step 2: Determine version and ask to continue
+    donediddy = False
+    try:
+        file_data.determine_version(file_path)
+        subprocess.run(['open', file_path])
+        cont_choice = str(input("Press enter to process the file, any other input to terminate and delete file"))
+        if cont_choice == "":
+            donediddy = False
+        else:
+            donediddy = True
+    except ValueError as e:
+        donediddy = True
     
-    # Step 3: Handle timestamp
-    file_data.handle_timestamp(file_path)
-    
-    # Step 4: Generate new filename
-    file_data.generate_filename(file_path)
-    
-    # Step 5: Collect description
-    file_data.collect_description()
+    if donediddy == False:
+        # Step 3: Handle timestamp
+        file_data.handle_timestamp(file_path)
+        
+        # Step 4: Generate new filename
+        file_data.generate_filename(file_path)
+        
+        # Step 5: Collect description
+        file_data.collect_description()
 
-    # Step 6: Insert into database
-    metadata = file_data.to_db_dict()
-    filebase_functions.insert_file(file_metadata=metadata)
+        # Step 6: Insert into database
+        metadata = file_data.to_db_dict()
+        filebase_functions.insert_file(file_metadata=metadata)
 
-    # Step 8: Insert location data
-    file_data.process_location(location_id=1)
+        # Step 8: Insert location data
+        file_data.process_location(location_name='firstmacbase')
+        file_data.rename_upload(file_path=file_path)
+
+    #Step 8: Remove file
+    if donediddy == False:
+        file_data.remover(file_path=file_path,new_path=True)
+    else:
+        file_data.remover(file_path=file_path,new_path=False)

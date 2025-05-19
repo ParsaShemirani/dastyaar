@@ -11,3 +11,7 @@ Ability to run functions from flask website and see their results
 
 Idea: make flask website that has an interactive python interface. There I can see what processes
 I can automate the most via AI and what programs I can make with the tools that I am developing.
+
+Encyclopedia idea: It suggests a topic for me to read that session based on my goal. There is a single .txt file 
+which I give a description on what I read on. And I append to it every time I read a new entry.
+The ai can use a few search functions to search through the txt file before suggesting the days search item.

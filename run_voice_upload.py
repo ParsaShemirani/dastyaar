@@ -8,7 +8,7 @@ sys.path.insert(0, project_root)
 # Import function from cli programs
 from app.cli_programs.voice_recording_uploader.main import main as process_file
 
-folder_path = '/Users/parsashemirani/Main/Inbox/testuploadersjamie'
+folder_path = '/Users/parsashemirani/Main/Inbox/timidmilitary'
 
 def main():
     for filename in os.listdir(folder_path):    
