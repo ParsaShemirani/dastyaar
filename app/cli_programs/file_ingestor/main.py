@@ -56,9 +56,9 @@ class FileData:
         print(f"File timestamp gathered (using brithtime for created): {self.ts}")
 
         # Ask if ctime should be used instead
-        if input("Type 'a' to generate timestamp using alternative method (os ctime)").lower() == 'a':
-            self.ts = utils.get_created_time(path=self.file_path,birthtime=False)
-            print(f"File timestamp gathered (using os ctime): {self.ts}")
+        if input("Type 'm' to generate timestamp using modified time").lower() == 'm':
+            self.ts = utils.get_modified_time(self.file_path)
+            print(f"File timestamp gathered (using modified time): {self.ts}")
 
         # Handle manual timestamp logic
         if input("Type 'm' to manually override gathered timestamp: ").lower() == 'm':
@@ -103,7 +103,7 @@ class FileData:
 
         # Get the directory of the original file
         directory = os.path.dirname(self.file_path)
-        
+
         # Create the new file path using self.name as the filename
         self.new_file_path = os.path.join(directory, self.name)
         
@@ -116,9 +116,9 @@ class FileData:
         os.rename(src=self.file_path,dst=self.new_file_path)
 
 
-    def upload_to_filebase(self):
-        """Copy the file to the filebase directory on mac"""
-        firstmacbase_dir = '/Users/parsashemirani/Main/firstmacbase'
+    def upload_to_firstmacbase(self):
+        """Copy the file to the firstmacbase directory on mac"""
+        firstmacbase_dir = '/Users/parsashemirani/Main/firstmacbase_test'
         #Make base path and move it there
         base_path = os.path.join(firstmacbase_dir, self.name)
         try:
@@ -148,7 +148,7 @@ class FileData:
 
 
 def main(file_path):
-
+    """ OLD MAN TIMMY
     # Initialize and process file data
     file_data = FileData(file_path)
     
@@ -186,15 +186,16 @@ def main(file_path):
         # Step 8: Insert location data
         file_data.process_location(location_name='firstmacbase_test')
         file_data.renamer()
-        file_data.upload_to_filebase()
+        file_data.upload_to_fil()
 
     file_data.remover()
+    """
 
 
 
     #NEW MAN REVAMP
     # Initialize and process file data
-    file_data = FileData(file_path)
+    file_data = FileData(file_path=file_path)
 
     # Collect initial metadata
     file_data.collect_initial_metadata()
@@ -204,9 +205,10 @@ def main(file_path):
         file_data.determine_version()
     except ValueError as e:
         print(f"File already exists in database. Error: {e}")
+        exit()
 
-    # Generate new filename and rename file
-    file_data.renamer()
+    # Generate new filename based on determined version number
+    file_data.generate_filename()
 
     # Open the file for user to view on computer
     subprocess.run(['open', file_path])
@@ -221,3 +223,32 @@ def main(file_path):
 
     # Determine timestamp
     file_data.handle_timestamp()
+
+    # Generate filename
+    file_data.generate_filename()
+
+    # Ask if user wants to collect description, do so if requested.
+    if input("Press enter to provide description, press d otherwise.").lower() != 'd':
+        file_data.collect_description()
+    
+    # Now we have all needed file information, ready to move file and upload data to databases.
+
+    # Upload file to firstmacbase
+    file_data.renamer()
+    file_data.upload_to_firstmacbase()
+
+    # Remove file from original ingestion location
+    file_data.remover()
+
+    # Generate MYSQL metadata and upload to database
+    metadata = file_data.to_db_dict()
+    filebase_functions.insert_file(file_metadata=metadata)
+
+    # Upload location info for new file (Uploaded to firstmacbase)
+    file_data.process_location(location_name='firstmacbase_test')
+
+    # Process completed!
+
+    print("File ingested successfully")
+
+

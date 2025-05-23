@@ -8,7 +8,7 @@ sys.path.insert(0, project_root)
 # Import function from cli programs
 from app.cli_programs.file_ingestor.main import main as process_file
 
-folder_path = '/Users/parsashemirani/Main/Inbox/timidmilitary'
+folder_path = '/Users/parsashemirani/Main/Inbox/file_ingestor_files'
 
 def main():
     for filename in os.listdir(folder_path):    
