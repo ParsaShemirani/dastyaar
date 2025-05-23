@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Filebase tools</title>
+</head>
+
+<body>
+    <h1>Filebase<h1>
+    <form action="/filebase/description_search" method="POST">
+        <label for="query">Search text:</label>
+        <input type="text" name="query" placeholder="Enter search text" required>
+        <button type="submit"> Submit</button>
+    </form>
+    <!-- CSS styles for list of response-->
+    <style>
+        ul li {
+            border: 1px solid black;
+            padding: 10px;
+            margin: 5px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+    </style>
+    <h2>Results:</h2>
+    
+    <ul>
+        {% for i in result %}
+            <li>Description: {{ i['description'] }} id: {{ i['id'] }}</li>
+        {% endfor %}
+    </ul>
+     <p>
+        {{result}}
+    </p>
+
+
+</body>
+
+</html>
