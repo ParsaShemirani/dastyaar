@@ -1,3 +1,10 @@
+import os
+import sys
+
+# Add the project root directory to Python path
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, project_root)
+
 from flask import Flask, render_template, jsonify, request, send_file, redirect, url_for
 from app.tools.mysql.filebase.functions import search_files_description
 from app.core.exceptions import DatabaseError
@@ -17,14 +24,14 @@ def filebase():
 
 
 
-@app.route('filebase/description_search', methods=['POST'])
+@app.route('/filebase/description_search', methods=['POST'])
 def filebase_description_search():
     query = request.form.get('query')
     try:
         result = search_files_description(search_text=query)
-        return render_template('filebase', result = (result))
+        return render_template('filebase.html', result=result) 
     except DatabaseError as e:
-        return None
+        return render_template('filebase.html', result=[])
 
 
 

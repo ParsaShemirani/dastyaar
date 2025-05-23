@@ -22,11 +22,15 @@
         }
     </style>
     <h2>Results:</h2>
+    
     <ul>
         {% for i in result %}
-            <li>{{i}}</li>
+            <li>Description: {{ i['description'] }} id: {{ i['id'] }}</li>
         {% endfor %}
     </ul>
+     <p>
+        {{result}}
+    </p>
 
 
 </body>
