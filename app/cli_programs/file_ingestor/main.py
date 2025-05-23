@@ -118,7 +118,7 @@ class FileData:
 
     def upload_to_firstmacbase(self):
         """Copy the file to the firstmacbase directory on mac"""
-        firstmacbase_dir = '/Users/parsashemirani/Main/firstmacbase_test'
+        firstmacbase_dir = '/Users/parsashemirani/Main/firstmacbase'
         #Make base path and move it there
         base_path = os.path.join(firstmacbase_dir, self.name)
         try:
@@ -206,7 +206,7 @@ def main(file_path, group_id = None):
     filebase_functions.insert_file(file_metadata=metadata)
 
     # Upload location info for new file (Uploaded to firstmacbase)
-    file_data.process_location(location_name='firstmacbase_test')
+    file_data.process_location(location_name='firstmacbase')
 
     #Insert group id information if provided
     if group_id:
