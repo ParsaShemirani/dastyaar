@@ -11,7 +11,7 @@ from app.cli_programs.file_ingestor.main import main as process_file
 folder_path = '/Users/parsashemirani/Main/Inbox/file_ingestor_files'
 
 def main():
-    user_group_input = int(input("Press enter to continue without group, type group id if ingesting for group"))
+    user_group_input = input("Press enter to continue without group, type group id if ingesting for group")
 
     for filename in os.listdir(folder_path):    
         # Build the full path to the file
@@ -24,8 +24,9 @@ def main():
 
 
         if user_group_input == "":
-            process_file(file_path=file_path)  # Pass the file path directly to the main function
+            process_file(file_path=file_path,group_id=None)  # Pass the file path directly to the main function
         else:
+            user_group_input = int(user_group_input)
             process_file(file_path=file_path,group_id=user_group_input)
 
 if __name__ == "__main__":

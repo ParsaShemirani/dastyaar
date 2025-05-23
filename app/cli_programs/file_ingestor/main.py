@@ -153,7 +153,7 @@ class FileData:
         
 
 
-def main(file_path, group_id):
+def main(file_path, group_id = None):
 
     # Initialize and process file data
     file_data = FileData(file_path=file_path)
