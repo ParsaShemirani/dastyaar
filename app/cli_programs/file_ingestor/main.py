@@ -148,52 +148,7 @@ class FileData:
 
 
 def main(file_path):
-    """ OLD MAN TIMMY
-    # Initialize and process file data
-    file_data = FileData(file_path)
-    
-    # Step 1: Collect initial metadata
-    file_data.collect_initial_metadata()
-    
-    # Step 2: Determine version and ask to continue
-    donediddy = False
-    try:
-        file_data.determine_version()
-        subprocess.run(['open', file_path])
-        cont_choice = str(input("Press enter to process the file, any other input to terminate and delete file"))
-        if cont_choice == "":
-            donediddy = False
-        else:
-            donediddy = True
-    except ValueError as e:
-        donediddy = True
-    
-    if donediddy == False:
-        # Step 3: Handle timestamp
-        file_data.handle_timestamp()
-        
-        # Step 4: Generate new filename
-        file_data.generate_filename()
-        
-        # Step 5: Collect description
-        file_data.collect_description()
 
-
-        # Step 6: Insert into database
-        metadata = file_data.to_db_dict()
-        filebase_functions.insert_file(file_metadata=metadata)
-
-        # Step 8: Insert location data
-        file_data.process_location(location_name='firstmacbase_test')
-        file_data.renamer()
-        file_data.upload_to_fil()
-
-    file_data.remover()
-    """
-
-
-
-    #NEW MAN REVAMP
     # Initialize and process file data
     file_data = FileData(file_path=file_path)
 

@@ -143,8 +143,8 @@ def main():
                     transcription = get_transcription(recorder.mp3_output_path)
                     print(transcription)
                     
-                    redo = input("Redo recording? (y/n): ").strip().lower()
-                    if redo == 'y':
+                    user_choice = input("Press Enter to accept recording, or 'r' to redo: ").strip().lower()
+                    if user_choice == 'r':
                         print("Restarting recording process...")
                         continue
                     else:
