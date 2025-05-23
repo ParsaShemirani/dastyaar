@@ -110,13 +110,14 @@ def get_file_extension(full_path: str) -> str:
     return ext[1:].lower() if ext else ''
 
 
-def get_created_time(path: str) -> str:
+def get_created_time(path: str, birthtime: bool) -> str:
     """
     Get the creation time of a file in MySQL DATETIME format.
     
     Args:
         path (str): The path to the file
-        
+        birthtime (bool, optional): If True, uses st_birthtime on systems that support it.
+                                    If False, uses os.path.getctime() for all systems.        
     Returns:
         str: File creation time in 'YYYY-MM-DD HH:MM:SS' format
         
@@ -124,9 +125,15 @@ def get_created_time(path: str) -> str:
         FileNotFoundError: If the file does not exist
         OSError: If there are issues accessing file statistics
     """
-    stat = os.stat(path)
-    ctime = stat.st_birthtime if hasattr(stat, 'st_birthtime') else os.path.getctime(path)
+    if birthtime:
+        stat = os.stat(path)
+        ctime = stat.st_birthtime if hasattr(stat, 'st_birthtime') else os.path.getctime(path)
+    else:
+        ctime = os.path.getctime(path)
+    
     return datetime.datetime.fromtimestamp(ctime).strftime('%Y-%m-%d %H:%M:%S')
+
+
 
 
 def get_modified_time(path: str) -> str:

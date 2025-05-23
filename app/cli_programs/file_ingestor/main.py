@@ -2,7 +2,7 @@ import os
 from typing import Optional, Dict, Any, Tuple
 from app.tools.utils import functions as utils
 from app.tools.mysql.filebase import functions as filebase_functions
-from app.cli_programs.file_ingestor.time_configurator import new_ts
+from app.cli_programs.file_ingestor import time_configurator
 from app.cli_programs.file_ingestor import description_recorder
 import shutil
 import subprocess
@@ -12,7 +12,9 @@ import subprocess
 
 class FileData:
     """Class to manage file metadata"""
-    def __init__(self):
+    def __init__(self,file_path:str):
+        self.file_path = file_path
+        self.new_file_path = None
         self.hash = None
         self.name = None
         self.ts = None
@@ -22,43 +24,50 @@ class FileData:
         self.description = None
         self.version_number = None
 
-    def collect_initial_metadata(self, file_path: str) -> None:
+    def collect_initial_metadata(self) -> None:
         """Collect metadata that can be gathered immediately from the file"""
-        if not os.path.isfile(file_path):
-            raise FileNotFoundError(f"The file {file_path} does not exist")
+        if not os.path.isfile(self.file_path):
+            raise FileNotFoundError(f"The file {self.file_path} does not exist")
         
-        self.hash = utils.generate_sha_hash(file_path=file_path,hex_output=False)
-        self.size = utils.get_file_size(file_path)
-        self.extension = utils.get_file_extension(file_path)
+        self.hash = utils.generate_sha_hash(file_path=self.file_path,hex_output=False)
+        self.size = utils.get_file_size(self.file_path)
+        self.extension = utils.get_file_extension(self.file_path)
 
-    def determine_version(self, file_path: str) -> None:
+    def determine_version(self) -> None:
         """Determine the version number for the file"""
         # Check if file already exists in database
         if filebase_functions.get_file_id_via_hash(sha_hash=self.hash) != 0:
             raise ValueError("File already exists in the database")
         # Try to get hash from current filename
-        filename_hash = utils.extract_hash_from_filename(file_path=file_path)
+        filename_hash = utils.extract_hash_from_filename(file_path=self.file_path)
         if filename_hash == None:
             self.version_number = 1
         else:
             self.version_number = filebase_functions.get_version_number_via_hash(hash_value=filename_hash) + 1
 
-    def handle_timestamp(self, file_path: str) -> None:
-        """Handle file timestamp, including manual override option"""
-        # Set initial timestamp based on version
+    def handle_timestamp(self) -> None:
+        """Handle file timestamp, including alternative method and manual override option"""
+        # Set initial timestamp based on version, using birthtime calculation for created time
         if self.version_number == 1:
-            self.ts = utils.get_created_time(file_path)
+            self.ts = utils.get_created_time(self.file_path,birthtime=True)
         else:
-            self.ts = utils.get_modified_time(file_path)
+            self.ts = utils.get_modified_time(self.file_path)
         
-        print(f"File timestamp gathered: {self.ts}")
-        if input("Type 'm' to manually override gathered timestamp: ").lower() == 'm':
-            self.ts, self.ts_precision = new_ts()
+        print(f"File timestamp gathered (using brithtime for created): {self.ts}")
 
-    def generate_filename(self, file_path: str) -> None:
+        # Ask if ctime should be used instead
+        if input("Type 'a' to generate timestamp using alternative method (os ctime)").lower() == 'a':
+            self.ts = utils.get_created_time(path=self.file_path,birthtime=False)
+            print(f"File timestamp gathered (using os ctime): {self.ts}")
+
+        # Handle manual timestamp logic
+        if input("Type 'm' to manually override gathered timestamp: ").lower() == 'm':
+            self.ts, self.ts_precision = time_configurator.new_ts()
+
+    def generate_filename(self) -> None:
         """Generate the new filename based on SHA hash"""
         self.name = utils.generate_new_filename(
-            file_path=file_path,
+            file_path=self.file_path,
             bin_hash=self.hash,
             version_number=self.version_number
         )
@@ -86,71 +95,70 @@ class FileData:
         file_id = filebase_functions.get_file_id_via_hash(sha_hash=self.hash)
         filebase_functions.insert_file_location(file_id=file_id,location_name=location_name)
 
-    def rename_upload(self, file_path: str) -> str:
-        """Rename the file on the system, copy it over to the initial base location
-        
-        Args:
-            file_path (str): The original file path
-            
-        Returns:
-            str: The new file path with the generated name
-        """
+
+
+
+    def renamer(self) -> str:
+        """Rename the file on the system and update the new_file_path attribute of the file object"""
+
         # Get the directory of the original file
-        directory = os.path.dirname(file_path)
+        directory = os.path.dirname(self.file_path)
         
         # Create the new file path using self.name as the filename
-        new_file_path = os.path.join(directory, self.name)
+        self.new_file_path = os.path.join(directory, self.name)
         
-        if not os.path.exists(file_path):
-            raise FileNotFoundError(f"Source file {file_path} does not exist")
+        if not os.path.exists(self.file_path):
+            raise FileNotFoundError(f"Source file {self.file_path} does not exist")
         
-        if os.path.exists(new_file_path):
-            raise FileExistsError(f"Destination file {new_file_path} already exists")
-        os.rename(src=file_path,dst=new_file_path)
+        if os.path.exists(self.new_file_path):
+            raise FileExistsError(f"Destination file {self.new_file_path} already exists")
+        # Rename the file located at file_path
+        os.rename(src=self.file_path,dst=self.new_file_path)
 
+
+    def upload_to_filebase(self):
+        """Copy the file to the filebase directory on mac"""
         firstmacbase_dir = '/Users/parsashemirani/Main/firstmacbase'
         #Make base path and move it there
         base_path = os.path.join(firstmacbase_dir, self.name)
         try:
             # Copy the file with its metadata
-            shutil.copy2(new_file_path, base_path)
+            shutil.copy2(self.new_file_path, base_path)
 
             # Print confirmation message
-            print(f"File '{new_file_path}' has been copied to '{base_path}' with metadata.")
+            print(f"File '{self.new_file_path}' has been copied to '{base_path}' with metadata.")
         except Exception as e:
             print(f"Error: {e}")
 
-    def remover(self,file_path: str,new_path: bool) -> str:
-        "Remove the file"
 
-        if new_path == True:
-            # Get the directory of the original file
-            directory = os.path.dirname(file_path)
-            
-            # Create the new file path using self.name as the filename
-            new_file_path = os.path.join(directory, self.name)
-            os.remove(new_file_path)
-            print(f"File {new_file_path} removed")
-        else:
-            os.remove(path=file_path)
-            print(f"File {file_path} removed")
+
+
+    def remover(self) -> str:
+        """
+        Remove the file from original ingestion location
+        """
+        if self.new_file_path and os.path.exists(self.new_file_path):
+            os.remove(self.new_file_path)
+            print(f"File {self.new_file_path} removed")
+        elif os.path.exists(self.file_path):
+            os.remove(path=self.file_path)
+            print(f"File {self.file_path} removed")
 
         
 
-file_path = 'james'
 
 def main(file_path):
 
     # Initialize and process file data
-    file_data = FileData()
+    file_data = FileData(file_path)
     
     # Step 1: Collect initial metadata
-    file_data.collect_initial_metadata(file_path)
+    file_data.collect_initial_metadata()
     
     # Step 2: Determine version and ask to continue
     donediddy = False
     try:
-        file_data.determine_version(file_path)
+        file_data.determine_version()
         subprocess.run(['open', file_path])
         cont_choice = str(input("Press enter to process the file, any other input to terminate and delete file"))
         if cont_choice == "":
@@ -162,10 +170,10 @@ def main(file_path):
     
     if donediddy == False:
         # Step 3: Handle timestamp
-        file_data.handle_timestamp(file_path)
+        file_data.handle_timestamp()
         
         # Step 4: Generate new filename
-        file_data.generate_filename(file_path)
+        file_data.generate_filename()
         
         # Step 5: Collect description
         file_data.collect_description()
@@ -177,10 +185,39 @@ def main(file_path):
 
         # Step 8: Insert location data
         file_data.process_location(location_name='firstmacbase_test')
-        file_data.rename_upload(file_path=file_path)
+        file_data.renamer()
+        file_data.upload_to_filebase()
 
-    #Step 8: Remove file
-    if donediddy == False:
-        file_data.remover(file_path=file_path,new_path=True)
-    else:
-        file_data.remover(file_path=file_path,new_path=False)
+    file_data.remover()
+
+
+
+    #NEW MAN REVAMP
+    # Initialize and process file data
+    file_data = FileData(file_path)
+
+    # Collect initial metadata
+    file_data.collect_initial_metadata()
+
+    # Determine file version and exit program if file exists
+    try:
+        file_data.determine_version()
+    except ValueError as e:
+        print(f"File already exists in database. Error: {e}")
+
+    # Generate new filename and rename file
+    file_data.renamer()
+
+    # Open the file for user to view on computer
+    subprocess.run(['open', file_path])
+
+    # Ask user if file should be ingested
+    ingest_user_choice = str(input("Press enter to ingest the file, any other input to terminate process and delete file"))
+
+    # Process in case file should be deleted and not ingested
+    if ingest_user_choice != "":
+        file_data.remover()
+        exit()
+
+    # Determine timestamp
+    file_data.handle_timestamp()
