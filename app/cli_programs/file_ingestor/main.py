@@ -144,10 +144,16 @@ class FileData:
             os.remove(path=self.file_path)
             print(f"File {self.file_path} removed")
 
+
+    def process_group(self, group_id: int) -> None:
+        file_id = filebase_functions.get_file_id_via_hash(sha_hash=self.hash)
+        filebase_functions.insert_file_group(file_id=file_id,group_id=group_id)
+
+
         
 
 
-def main(file_path):
+def main(file_path, group_id):
 
     # Initialize and process file data
     file_data = FileData(file_path=file_path)
@@ -201,6 +207,10 @@ def main(file_path):
 
     # Upload location info for new file (Uploaded to firstmacbase)
     file_data.process_location(location_name='firstmacbase_test')
+
+    #Insert group id information if provided
+    if group_id:
+        file_data.process_group(group_id=group_id)
 
     # Process completed!
 

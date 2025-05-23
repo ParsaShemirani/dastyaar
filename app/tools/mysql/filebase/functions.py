@@ -148,3 +148,29 @@ def search_files_description(search_text:str):
         return result
     except Exception as e:
         raise DatabaseError(f"An error occurred while fetching files: {str(e)}")
+
+def insert_file_group(file_id: int, group_id: int) -> bool:
+    """
+    Insert a new row for a file and its group using group ID
+    
+    Args:
+        file_id (int): The ID of the file
+        group_id (int): The ID of the group
+        
+    Returns:
+        bool: True if insertion successful, False if failed
+    """
+    try:
+        # Insert into file_group junction table directly using the group_id
+        insert_query = """
+            INSERT INTO file_group
+                (file_id, group_id)
+            VALUES 
+                (%s, %s)
+        """
+        filebase_instance.execute_write(insert_query, [file_id, group_id])
+        return True
+
+    except DatabaseError as e:
+        # Re-raise the database error with more context
+        raise DatabaseError(f"Failed to insert file group: {str(e)}")
