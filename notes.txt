@@ -18,6 +18,7 @@ The ai can use a few search functions to search through the txt file before sugg
 
 Roadmap:
 1: Command line interface that works for ingesting files, calling certain functions, interacting with agents
+    agents have no conversation history or saving, just within terminal session.
 2: Flask website that brings that functionality online to mobile devices and better interface
 3. Flask website that supports agent chat, voice chat interaction
 4. IOS mobile app and watch app
