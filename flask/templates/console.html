@@ -1,32 +1,57 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Python Console</title>
+    <title>Python Console & Dastyaar</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <h1>Python Interactive Console</h1>
-    
-    <div id="console-container">
-        {% for line in historyarr %}
-            {% if line.startswith('>>> ') %}
-                <p class="console-line command"><span class="command-prompt">>>> </span>{{ line[4:] }}</p>
-            {% else %}
-                <p class="console-line">{{ line }}</p>
-            {% endif %}
-        {% endfor %}
-    </div>
+    <div class="main-container">
+        <!-- Python Console Panel -->
+        <div class="panel">
+            <h1>Python Interactive Console</h1>
+            
+            <div id="console-container">
+                {% for line in historyarr %}
+                    {% if line.startswith('>>> ') %}
+                        <p class="console-line command"><span class="command-prompt">>>> </span>{{ line[4:] }}</p>
+                    {% else %}
+                        <p class="console-line">{{ line }}</p>
+                    {% endif %}
+                {% endfor %}
+            </div>
 
-    <form id="code-form" action="/codeline" method="POST">
-        <div class="input-area">
-            <input type="text" id="codeline" name="codeline" autocomplete="off" placeholder="Enter Python code here..." required>
-            <button type="submit">Run</button>
+            <form id="code-form" action="/codeline" method="POST">
+                <div class="input-area">
+                    <input type="text" id="codeline" name="codeline" autocomplete="off" placeholder="Enter Python code here..." required>
+                    <button type="submit">Run</button>
+                </div>
+            </form>
+            
+            <form action="/resetconsole" method="GET">
+                <button id="reset-button" type="submit">Reset Console</button>
+            </form>
         </div>
-    </form>
-    
-    <form action="/resetconsole" method="GET">
-        <button id="reset-button" type="submit">Reset Console</button>
-    </form>
+
+        <!-- Dastyaar Panel -->
+        <div class="panel">
+            <h1>Dastyaar</h1>
+            
+            <div id="dastyaar-container">
+                <!-- Empty for now -->
+            </div>
+
+            <form id="dastyaar-form">
+                <div class="input-area">
+                    <input type="text" id="dastyaar-input" name="dastyaar-input" autocomplete="off" placeholder="Enter message for Dastyaar..." required>
+                    <button type="submit">Send</button>
+                </div>
+            </form>
+            
+            <form>
+                <button id="reset-button" type="button">Clear Chat</button>
+            </form>
+        </div>
+    </div>
 
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
