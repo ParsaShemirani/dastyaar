@@ -1,17 +1,20 @@
-// Scroll to bottom of console on page load
 document.addEventListener('DOMContentLoaded', function() {
     const consoleContainer = document.getElementById('console-container');
-    consoleContainer.scrollTop = consoleContainer.scrollHeight;
-    
-    // Focus on input field
-    document.getElementById('codeline').focus();
-    
-    // Handle form submission without page refresh
     const codeForm = document.getElementById('code-form');
+    const codeInput = document.getElementById('codeline');
+    
+    // Initial setup
+    scrollToBottom();
+    codeInput.focus();
+    
+    // Handle form submission
     codeForm.addEventListener('submit', function(e) {
         e.preventDefault();
         
         const formData = new FormData(this);
+        const codeline = formData.get('codeline').trim();
+        
+        if (!codeline) return;
         
         fetch('/codeline', {
             method: 'POST',
@@ -19,20 +22,24 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => response.text())
         .then(html => {
-            // Extract just the console content from the response
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-            const newConsoleContent = doc.getElementById('console-container').innerHTML;
-            
-            // Update just the console content
-            document.getElementById('console-container').innerHTML = newConsoleContent;
-            
-            // Scroll to bottom
-            consoleContainer.scrollTop = consoleContainer.scrollHeight;
-            
-            // Clear and focus the input field
-            document.getElementById('codeline').value = '';
-            document.getElementById('codeline').focus();
+            updateConsoleContent(html);
+            codeInput.value = '';
+            codeInput.focus();
+            scrollToBottom();
+        })
+        .catch(error => {
+            console.error('Error:', error);
         });
     });
+    
+    function updateConsoleContent(html) {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const newContent = doc.getElementById('console-container').innerHTML;
+        consoleContainer.innerHTML = newContent;
+    }
+    
+    function scrollToBottom() {
+        consoleContainer.scrollTop = consoleContainer.scrollHeight;
+    }
 });
