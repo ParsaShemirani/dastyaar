@@ -5,43 +5,35 @@ import sys
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_root)
 
-from flask import Flask, render_template, jsonify, request, send_file, redirect, url_for
-from app.tools.mysql.filebase.functions import search_files_description
-from app.core.exceptions import DatabaseError
+
+from flask import Flask, render_template, jsonify, request, send_file, redirect
+from console import CapturingConsole
+
+console = CapturingConsole()
+
+
 
 app = Flask(__name__)
 
-@app.route("/")
+@app.route('/')
 def home():
-    return render_template('home.html')
+    return render_template('console.html', historyarr=console.history)
 
+@app.route('/codeline', methods=['POST'])
+def codeline():
+    codeline = request.form.get('codeline')
+    if codeline is not None:
+        console.push(codeline)
+    return render_template('console.html', historyarr=console.history)
 
-@app.route('/filebase')
-def filebase():
-    return render_template('filebase.html')
+@app.route('/resetconsole', methods=['GET'])
+def resetconsole():
+    global console
+    console = CapturingConsole() 
+    return redirect('/')
 
-
-
-
-
-@app.route('/filebase/description_search', methods=['POST'])
-def filebase_description_search():
-    query = request.form.get('query')
-    try:
-        result = search_files_description(search_text=query)
-        return render_template('filebase.html', result=result) 
-    except DatabaseError as e:
-        return render_template('filebase.html', result=[])
-
-
-
-
-
-
-
-
-
-
+if __name__ == '__main__':
+    app.run(debug=True)
 
 
 
