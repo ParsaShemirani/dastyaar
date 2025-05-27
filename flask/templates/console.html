@@ -37,12 +37,14 @@
             <h1>Dastyaar</h1>
             
             <div id="dastyaar-container">
-                <!-- Empty for now -->
+                {% for message in conversation %}
+                    <p class="message">{{ message }}</p>
+                {% endfor %}
             </div>
 
-            <form id="dastyaar-form">
+            <form id="dastyaar-form" action="/input_message" method="POST">
                 <div class="input-area">
-                    <input type="text" id="dastyaar-input" name="dastyaar-input" autocomplete="off" placeholder="Enter message for Dastyaar..." required>
+                    <input type="text" id="dastyaar-input" name="input_message" autocomplete="off" placeholder="Enter message for Dastyaar..." required>
                     <button type="submit">Send</button>
                 </div>
             </form>

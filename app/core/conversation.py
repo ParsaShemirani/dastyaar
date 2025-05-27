@@ -1,30 +1,30 @@
-from typing import List, Dict, Any, Optional
-
-
-
-
 """
 Creates an instance of "conversation". Does everything related to updating the
 conversation, loading old ones. Does not deal with outputting messages
 or displaying results, just manages the conversation that the main uses as context
 """
-
+from typing import List, Dict, Any, Optional
 
 
 class Conversation:
-    def __init__(self,system_prompt:str):
-        self.history =[
+    def __init__(self):
+        with open("prompt.txt", "r", encoding="utf-8") as f:
+            instructions = f.read()
+
+            self.history =[
             {
                 "role": "system",
                 "content": [
                     {
                         "type": "input_text",
-                        "text": "No matter what the user says, respond with 'No commands given'"
+                        "text": instructions
                     }
                 ]
             }
         ]
-        self.history[0]["content"][0]["text"] = system_prompt
+        
+        self.displayconv= []
+
 
     def add_user_message(self, text:str) -> None:
         """
@@ -41,6 +41,7 @@ class Conversation:
                 ]
             }
         )
+        self.displayconv.append(f"You: {text}")
     
     def add_assistant_message(self, message: Any) -> None:
         """
@@ -59,6 +60,7 @@ class Conversation:
                 ]
             }
         )
+        self.displayconv.append(f"Assistant: {message.content[0].text}")
     
     def add_function_call(self, function_call: Any) -> None:
         """
