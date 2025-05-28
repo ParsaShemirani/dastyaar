@@ -1,0 +1,44 @@
+import json
+import ast
+
+
+def format_conversation_log(conversation_list):
+    """
+    Takes a conversation log list and returns a pretty-printed JSON string.
+    
+    Args:
+        conversation_list (list): The conversation log as a list of dictionaries.
+        
+    Returns:
+        str: A formatted JSON string representing the conversation.
+    """
+    return json.dumps(conversation_list, indent=2, ensure_ascii=False)
+
+# Example usage:
+
+
+conversation_log = [{'role': 'system', 'content': [{'type': 'input_text', 'text': '\n\n# Assistant Instructions\n\nYour job is to accomplish the user\'s requests by using a Python interactive session.\n\n* Use the `push_code` function to interact with the session.\n* You will also have access to a list of functions that you can import and utilize.\n\nSend messages to the user with short updates on what you are doing, and answer any questions they ask.\n\n---\n\n# Functions\n\nBelow is the **exact list of functions** available for you to use, with detailed descriptions and usage instructions.\n\n**Important:**\n\n* Use the **exact function names** provided here.\n* Do **not** shorten, abbreviate, or guess alternative function names.\n* Always import functions from their specified module path **before** calling them in the Python session.\n\n---\n\n<open_file> <path>app.tools.mac_commands.functions</path> <description><![CDATA[\nOpen a file using macOS open command.\n\nArgs:\nfilename (str): The name of the file to open\n\nReturns:\nNone\n]]></description>\n<usage_instructions><![CDATA[\nThe filename for a file can be obtained via the mysql database.  \nThe \'name\' column of the file contains its filename, which when inputted into open_file, will open the file on the user\'s computer.  \n]]></usage_instructions>\n</open_file>\n\n---\n\n<search_files_description> <path>app.tools.mysql.filebase.functions</path> <description><![CDATA[\nSearch for all fields of file entries in the mysql database using full text search on the "description" column.\n\nArgs:\nsearch_text (str): The text to search for in file descriptions\n\nReturns:\nList[Dict]: A list of file records matching the search criteria, ordered by relevance\n]]></description>\n<usage_instructions><![CDATA[\n\n\n**Usage example:**\n\n```python\nfrom app.tools.mysql.filebase.functions import search_files_description  \nresults = search_files_description("search query text")  \nprint(results[0]["description"])\n```\n\n**Important:**\n* Always assign the output to a variable, as the function returns an extremely long string. **never** print the whole output or the variable which contains it.\n* If you do results = search_files_description(...), **never** print results! Only print individual elements or parts of elements.\n* Do **not** call or import any function named `search_files` as it does not exist.\n* Always use the exact function name: `search_files_description`.\n]]></usage_instructions>\n</search_files_description>\n\n\n'}]}, {'role': 'user', 'content': [{'type': 'input_text', 'text': 'Please open the photo of my aunt Sara standing next to the shore in San Rafael Park'}]}, {'type': 'function_call', 'id': 'fc_68366c2370b481988138cf3516f188a10ec70b281520936c', 'call_id': 'call_vZGbn3LCA9qQX7YLfrITosD1', 'name': 'push_code', 'arguments': '{"code_str":"from app.tools.mysql.filebase.functions import search_files_description\\n\\n# Search for the photo of aunt Sara\\nsearch_text = \'aunt Sara standing next to the shore in San Rafael Park\'\\nresults = search_files_description(search_text)"}'}, {'type': 'function_call_output', 'call_id': 'call_vZGbn3LCA9qQX7YLfrITosD1', 'output': '">>> from app.tools.mysql.filebase.functions import search_files_description\\n>>> \\n>>> # Search for the photo of aunt Sara\\n>>> search_text = \'aunt Sara standing next to the shore in San Rafael Park\'\\n>>> results = search_files_description(search_text)"'}, {'type': 'function_call', 'id': 'fc_68366c268c7c819896e8f0426cc0728d0ec70b281520936c', 'call_id': 'call_jUDmcCTkNUkYQp2op9KZWDEo', 'name': 'push_code', 'arguments': '{"code_str":"results"}'}, {'type': 'function_call_output', 'call_id': 'call_jUDmcCTkNUkYQp2op9KZWDEo', 'output': '\'>>> results\\n[{\\\'id\\\': 169, \\\'name\\\': \\\'IMG_0665-v1-bdfa1e7237dc7aa43f2e5d15a00654f1ec08d3b15341a1beae6b109b5ae13b2e.JPG\\\', \\\'ts\\\': datetime.datetime(2011, 4, 29, 0, 1, 12), \\\'ts_precision\\\': None, \\\'extension\\\': \\\'jpg\\\', \\\'size\\\': 4769899, \\\'hash\\\': b\\\'\\\\xbd\\\\xfa\\\\x1er7\\\\xdcz\\\\xa4?.]\\\\x15\\\\xa0\\\\x06T\\\\xf1\\\\xec\\\\x08\\\\xd3\\\\xb1SA\\\\xa1\\\\xbe\\\\xaek\\\\x10\\\\x9bZ\\\\xe1;.\\\', \\\'parent_id\\\': None, \\\'derivative_of\\\': None, \\\'version_number\\\': 1, \\\'description\\\': \\\'In this image, my Aunt Sarah is standing on the shore of the San Rafael Park.\\\', \\\'relevance\\\': 17.970884323120117}, {\\\'id\\\': 156, \\\'name\\\': \\\'IMG_0613-v1-fa38f141dcde75a08750c7325084d6d599cc353a4e9c42b157f8f25886c9c6af.JPG\\\', \\\'ts\\\': datetime.datetime(2011, 4, 17, 22, 48, 28), \\\'ts_precision\\\': None, \\\'extension\\\': \\\'jpg\\\', \\\'size\\\': 5451627, \\\'hash\\\': b\\\'\\\\xfa8\\\\xf1A\\\\xdc\\\\xdeu\\\\xa0\\\\x87P\\\\xc72P\\\\x84\\\\xd6\\\\xd5\\\\x99\\\\xcc5:N\\\\x9cB\\\\xb1W\\\\xf8\\\\xf2X\\\\x86\\\\xc9\\\\xc6\\\\xaf\\\', \\\'parent_id\\\': None, \\\'derivative_of\\\': None, \\\'version_number\\\': 1, \\\'description\\\': \\\'In this picture, I am in my karate taekwondo uniform, standing next to the table in the living room.\\\', \\\'relevance\\\': 7.434121131896973}, {\\\'id\\\': 75, \\\'name\\\': \\\'DSC00908-v1-e9e6c1fe15c22db96c29ebd0a8184824abbeccf3fc4efb2d3db2df8fa0226433.JPG\\\', \\\'ts\\\': datetime.datetime(2025, 4, 11, 15, 22, 50), \\\'ts_precision\\\': None, \\\'extension\\\': \\\'jpg\\\', \\\'size\\\': 8733849, \\\'hash\\\': b\\\'\\\\xe9\\\\xe6\\\\xc1\\\\xfe\\\\x15\\\\xc2-\\\\xb9l)\\\\xeb\\\\xd0\\\\xa8\\\\x18H$\\\\xab\\\\xbe\\\\xcc\\\\xf3\\\\xfcN\\\\xfb-=\\\\xb2\\\\xdf\\\\x8f\\\\xa0"d3\\\', \\\'parent_id\\\': None, \\\'derivative_of\\\': None, \\\'version_number\\\': 1, \\\'description\\\': \\\'This is a photo of our family during the Lake Tahoe trip on the shore of the lake. My Aunt Leila is taking a photo of them, and I was on top of the rocks climbing them, getting a higher view of the shot.\\\', \\\'relevance\\\': 5.74217414855957}]\''}, {'type': 'function_call', 'id': 'fc_68366c27adec8198a31d3613edac7e8b0ec70b281520936c', 'call_id': 'call_CEQrP3mVkEBsVcGMeYG44KaJ', 'name': 'push_code', 'arguments': '{"code_str":"open_file(\'IMG_0665-v1-bdfa1e7237dc7aa43f2e5d15a00654f1ec08d3b15341a1beae6b109b5ae13b2e.JPG\')"}'}, {'type': 'function_call_output', 'call_id': 'call_CEQrP3mVkEBsVcGMeYG44KaJ', 'output': '\'>>> open_file(\\\'IMG_0665-v1-bdfa1e7237dc7aa43f2e5d15a00654f1ec08d3b15341a1beae6b109b5ae13b2e.JPG\\\')\\nTraceback (most recent call last):\\n  File "<console>", line 1, in <module>\\nNameError: name \\\'open_file\\\' is not defined\''}, {'type': 'function_call', 'id': 'fc_68366c29bc2c8198add0f03366f151310ec70b281520936c', 'call_id': 'call_HAfM0XdMhP5WYojWOFZgHrsg', 'name': 'push_code', 'arguments': '{"code_str":"from app.tools.mac_commands.functions import open_file\\nopen_file(\'IMG_0665-v1-bdfa1e7237dc7aa43f2e5d15a00654f1ec08d3b15341a1beae6b109b5ae13b2e.JPG\')"}'}, {'type': 'function_call_output', 'call_id': 'call_HAfM0XdMhP5WYojWOFZgHrsg', 'output': '">>> from app.tools.mac_commands.functions import open_file\\n>>> open_file(\'IMG_0665-v1-bdfa1e7237dc7aa43f2e5d15a00654f1ec08d3b15341a1beae6b109b5ae13b2e.JPG\')"'}, {'id': 'msg_68366c2c7ca88198b9fd7116acf682030ec70b281520936c', 'role': 'assistant', 'content': [{'type': 'output_text', 'text': "I've opened the photo of your Aunt Sara standing next to the shore in San Rafael Park. You should be able to view it now! If you need any further assistance, just let me know."}]}, {'role': 'user', 'content': [{'type': 'input_text', 'text': 'When was that picture taken? Thank you for opening it.'}]}, {'id': 'msg_68366c6b23c48198a7f353168ea060f60ec70b281520936c', 'role': 'assistant', 'content': [{'type': 'output_text', 'text': 'The picture was taken on April 29, 2011. If you have any more questions or need help with something else, feel free to ask!'}]}]
+james = f"{conversation_log}"
+
+import re
+
+def estimate_token_count(prompt: str) -> int:
+    """
+    Estimates the number of tokens in a prompt by splitting on whitespace and punctuation.
+    
+    Args:
+        prompt (str): The input text prompt.
+    
+    Returns:
+        int: Estimated number of tokens.
+    """
+    # Split prompt by whitespace and punctuation (basic tokenizer)
+    tokens = re.findall(r"\w+|[^\w\s]", prompt)
+    return len(tokens)
+
+# Example usage:
+
+print(estimate_token_count(james))  # Roughly counts tokens
+
+
+print(format_conversation_log(conversation_log))

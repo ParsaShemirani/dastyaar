@@ -148,6 +148,7 @@ def search_files_description(search_text:str) -> List[Dict]:
         FROM files
         WHERE MATCH(description) AGAINST (%s IN NATURAL LANGUAGE MODE)
         ORDER BY relevance DESC
+        LIMIT 3
         """
         result = filebase_instance.execute_read(
             query=query,

@@ -22,7 +22,7 @@ def execute_function(tool_call: Any):
     Execute a function based on the call recieved and return the output
     """
     args = json.loads(tool_call.arguments)
-    function_output = console.push_code(args)
+    function_output = console.push_code(args["code_str"])
     return function_output
 
 
@@ -60,6 +60,7 @@ def input_message():
 
 @app.route('/resetconsole', methods=['GET'])
 def resetconsole():
+    print(conversation.history)
     global console
     console = Console()
     return redirect('/')

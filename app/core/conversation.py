@@ -8,7 +8,9 @@ from typing import List, Dict, Any, Optional
 
 class Conversation:
     def __init__(self):
-        with open("prompt.txt", "r", encoding="utf-8") as f:
+        import os
+        prompt_path = os.path.join(os.path.dirname(__file__), "prompt.md")
+        with open(prompt_path, "r", encoding="utf-8") as f:
             instructions = f.read()
 
             self.history =[

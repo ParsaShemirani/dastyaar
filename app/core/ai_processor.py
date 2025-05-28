@@ -7,7 +7,7 @@ from app.core.testai import response
 
 
 
-MAX_ITERATIONS = 3
+MAX_ITERATIONS = 6
 
 def _handle_function_call(conversation: Any, output_item: Any, execute_function: Callable) -> None:
     """Handle a function call from the AI response"""
@@ -37,7 +37,8 @@ def process(conversation: Any, execute_function: Callable) -> None:
 
     while follow_up_needed and iterations < MAX_ITERATIONS:
         iterations += 1
-        
+        print("ITIRATION GAMING")
+        print(iterations)
         for output_item in ai_response.output:
             if output_item.type == "function_call":
                 saw_function_call = True
