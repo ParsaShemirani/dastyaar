@@ -14,17 +14,17 @@ class Conversation:
             instructions = f.read()
 
             self.history =[
-            {
-                "role": "system",
-                "content": [
-                    {
-                        "type": "input_text",
-                        "text": instructions
-                    }
-                ]
-            }
-        ]
-        
+                {
+                    "role": "system",
+                    "content": [
+                        {
+                            "type": "input_text",
+                            "text": instructions
+                        }
+                    ]
+                }
+            ]
+    
         self.displayconv= []
 
 
