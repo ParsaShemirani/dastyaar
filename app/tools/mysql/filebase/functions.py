@@ -126,10 +126,19 @@ def insert_file(file_metadata: Dict[str, Any]) -> bool:
         # Re-raise the database error with more context
         raise DatabaseError(f"Failed to insert file: {str(e)}")
     
-def search_files_description(search_text:str):
+def search_files_description(search_text:str) -> List[Dict]:
     """
-    Search for all fields of file entries using full text search on the "descriptiion"
+    Search for all fields of file entries using full text search on the "description"
     column.
+    
+    Args:
+        search_text (str): The text to search for in file descriptions
+        
+    Returns:
+        List[Dict]: A list of file records matching the search criteria, ordered by relevance
+        
+    Raises:
+        DatabaseError: If there's an issue with the database query execution
     """
     try:
         query = """
@@ -139,6 +148,7 @@ def search_files_description(search_text:str):
         FROM files
         WHERE MATCH(description) AGAINST (%s IN NATURAL LANGUAGE MODE)
         ORDER BY relevance DESC
+        LIMIT 3
         """
         result = filebase_instance.execute_read(
             query=query,
