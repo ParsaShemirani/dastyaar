@@ -2,9 +2,9 @@ import os
 import sys
 import json
 from flask import Flask, render_template, jsonify, request, redirect
-from flask_app.console import Console
-from app.core.ai_processor import process
-from app.core.conversation import Conversation
+from app.core.console import Console
+from app.ai.ai_processor import process
+from app.ai.conversation import Conversation
 def create_app():
 
     app = Flask(__name__)

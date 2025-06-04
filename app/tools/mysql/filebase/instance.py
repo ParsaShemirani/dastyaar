@@ -1,4 +1,4 @@
-from app.core.dbinterface import MySQLInterface
+from app.tools.mysql.dbinterface import MySQLInterface
 from app.config import settings
 
 _FILEBASE_DB_CONFIG = {

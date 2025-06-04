@@ -11,6 +11,12 @@ class Console:
         self.historylist = []  # Interaction history
         self._buffer = []  # Buffer for multi-line inputs
 
+    def reset(self) -> None:
+        """Reset the console to its initial state"""
+        self.console = code.InteractiveConsole()
+        self.historylist = []
+        self._buffer = []
+
     def push_code(self, code_str: str) -> str:
         # Execute a block of code as if entered in a REPL and capture its output
         snippet = ""
@@ -50,3 +56,4 @@ class Console:
                 self.historylist.append(line)
 
         return code_output.rstrip('\n')
+

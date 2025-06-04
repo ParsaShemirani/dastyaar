@@ -1,5 +1,5 @@
 from typing import Any, Callable
-from app.core.testai import response
+from app.ai.testai import response
 
 
 
