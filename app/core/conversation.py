@@ -9,7 +9,7 @@ from typing import List, Dict, Any, Optional
 class Conversation:
     def __init__(self):
         import os
-        prompt_path = os.path.join(os.path.dirname(__file__), "prompt.md")
+        prompt_path = os.path.join(os.path.dirname(__file__), "newprompt.txt")
         with open(prompt_path, "r", encoding="utf-8") as f:
             instructions = f.read()
 
