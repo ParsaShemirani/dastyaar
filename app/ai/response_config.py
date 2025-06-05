@@ -1,7 +1,6 @@
-
 from openai import OpenAI
 from app.config.settings import OPENAI_API_KEY
-from app.ai_revamp import conversation
+from app.ai import conversation
 
 client = OpenAI()
 
@@ -38,11 +37,10 @@ def response():
     return client.responses.create(
         model = "gpt-4o-mini",
         input = conversation.history,
-        text={"format": {"type": "text"}},
         reasoning={},
         tools=tools,
         temperature=1,
         max_output_tokens=2048,
         top_p=1,
-        store=True
+        store=False
     )

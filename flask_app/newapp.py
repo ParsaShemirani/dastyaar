@@ -1,9 +1,9 @@
 
 from flask import Flask,render_template, request, jsonify, redirect
 
-from app.ai_revamp import conversation
+from app.ai import conversation
 from app.core import console
-from app.ai_revamp.ai_processor import process
+from app.ai.ai_processor import process
 
 def create_app():
     app = Flask(__name__)

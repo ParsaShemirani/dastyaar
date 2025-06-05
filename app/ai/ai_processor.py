@@ -1,7 +1,7 @@
 from typing import Any
-from app.ai_revamp.response_config import response
+from app.ai.response_config import response
 from app.core import console
-from app.ai_revamp import conversation
+from app.ai import conversation
 import json
 
 MAX_ITERATIONS = 6
@@ -41,5 +41,7 @@ def process() -> None:
 
         if 'output' in conversation.history[-1]:
             follow_up_needed = True
+        else:
+            follow_up_needed = False
         if follow_up_needed:
             ai_response = response()
