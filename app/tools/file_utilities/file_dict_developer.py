@@ -1,4 +1,4 @@
-import core_james
+import app.tools.file_utilities.file_functions as file_functions
 
 file_function_reference = {
     'generate_new_file_path': {
@@ -41,7 +41,7 @@ file_function_reference = {
 
 def develop_file_dict(file_dict, file_function):
     arguments = {}
-    func = getattr(core_james, file_function)
+    func = getattr(file_functions, file_function)
     result_key = file_function_reference[file_function]['result_key']
     for param in file_function_reference[file_function]['parameters']:
         arguments[param] = file_dict[param]
