@@ -109,13 +109,12 @@ def copy_file(dst_dir,file_path=None, filedict=None):
     shutil.copy2(file_path, dst_path)
 
 def generate_new_filename(filedict):
-    if file_path is None:
-        file_path = filedict['file_path']
-
-    pattern = r'^(.*)-v(\d+)-([0-9A-Fa-f]+)(\.[^.]+)$'
+    file_path = filedict['file_path']
+    pattern = r'^(.+)-v(\d+)-([0-9A-Fa-f]+)(\.[^.]+)$'
     filename = os.path.basename(file_path)
     m = re.match(pattern, filename)
-    basename, old_ver, old_hash, ext = m.groups()
+    basename = m.groups(1)
+    ext = m.groups(4)
     new_name = f"{basename}-v{filedict['version_number']}-{filedict['new_hash']}{ext}"
     return new_name
 
@@ -135,3 +134,4 @@ def extract_voice_rec_ts(file_path=None, filedict=None):
         return result
     elif filedict is not None:
         filedict["ts"] = result
+
