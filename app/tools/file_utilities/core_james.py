@@ -56,17 +56,20 @@ def copy_file(file_path,dst_dir):
     shutil.copy2(file_path, dst_path)
 
 def generate_new_filename(file_path, version_number, hash):
+    hex_hash = hash.hex()
     pattern = r'^(.+)-v(\d+)-([0-9A-Fa-f]+)(\.[^.]+)$'
     filename = os.path.basename(file_path)
     m = re.match(pattern, filename)
     basename = m.groups(1)
     ext = m.groups(4)
-    result = f"{basename}-v{version_number}-{hash}{ext}"
+    result = f"{basename}-v{version_number}-{hex_hash}{ext}"
     return result
 
 def generate_first_filename(file_path, version_number, hash):
-    filename, ext= os.path.splitext(file_path)
-    result = f"{filename}-v{version_number}-{hash}{ext}"
+    hex_hash = hash.hex()
+    basename = os.path.basename(file_path)
+    filename, ext= os.path.splitext(basename)
+    result = f"{filename}-v{version_number}-{hex_hash}{ext}"
     return result
 
 def extract_voice_rec_ts(file_path):    
@@ -78,3 +81,4 @@ def extract_voice_rec_ts(file_path):
     )
     result = dt.strftime("%Y-%m-%d %H:%M:%S")
     return result
+
