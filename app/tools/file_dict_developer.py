@@ -1,4 +1,4 @@
-import app.tools.file_utilities.file_functions as file_functions
+import app.tools.file_functions as file_functions
 
 file_function_reference = {
     'generate_new_file_path': {

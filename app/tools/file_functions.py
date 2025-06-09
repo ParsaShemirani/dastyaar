@@ -82,3 +82,11 @@ def extract_voice_rec_ts(file_path):
     result = dt.strftime("%Y-%m-%d %H:%M:%S")
     return result
 
+def extract_hash_from_filename(file_path):
+    pattern = r'-v\d+-([a-f0-9]{64})(?:\.\w+)?$'
+    match = re.match(pattern, file_path)
+    hex_hash = match.group(1) if match else None
+
+    if hex_hash:
+        return bytes.fromhex(hex_hash)
+    return None
