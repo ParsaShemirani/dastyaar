@@ -1,15 +1,20 @@
 import pyaudio
 import wave
 import threading
+import subprocess
+import os
 from  app.tools import open_ai_transcriber
 
+output_directory = "/Users/parsashemirani/Main/dastyaar"
+wav_recording = os.path.join(output_directory, "output.wav")
+mp3_converted = os.path.join(output_directory, "output.mp3")
 
 def record(
     chunk = 1024,
     format = pyaudio.paInt16,
     channels = 1,
     rate = 16000,
-    filename = 'output.wav',
+    filename = wav_recording,
     ):
     pa = pyaudio.PyAudio()
 
@@ -33,7 +38,7 @@ def record(
     input()
     stop.set()
     t.join()   
-    
+
     stream.stop_stream()
     stream.close()
     pa.terminate()
@@ -45,14 +50,23 @@ def record(
     wf.writeframes(b''.join(frames))
     wf.close()
 
-def interactive():
+def convert_to_mp3():
+    subprocess.run(
+        ["ffmpeg", "-i", wav_recording, mp3_converted],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL)
+    os.remove(wav_recording)
+
+def interactive_transcribe():
     input("Press enter to start recording")
     record_again = True
     while record_again == True:
         record()
+        convert_to_mp3()
         transcription = open_ai_transcriber.get_transcription(
-            file_path='output.wav'
+            file_path=mp3_converted
         )
+        os.remove(mp3_converted)
         print("Transcription:")
         print(transcription)
 
