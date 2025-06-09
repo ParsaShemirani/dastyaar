@@ -1,8 +1,10 @@
-from app.tools import file_functions
 from app.tools.sqlite3interface import SQLiteInterface
 from app.tools.settings import FILEBASE_FILE
 
 filebase_db = SQLiteInterface(FILEBASE_FILE)
+
+#### SINCE SQLITE USES TEXT BASED DATES ANYWAYS, REMOVE
+#### TS PRECISION COLUMN AND PUT X MARKS ON UNPRECISE.
 
 def get_version_number_via_hash(hash):
     query = """
