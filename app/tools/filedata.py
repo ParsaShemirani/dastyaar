@@ -1,8 +1,5 @@
 #The sun set slowly, painting the sky with hues of orange.
 
-
-
-
 import file_functions
 import filebase_functions
 class FileData:

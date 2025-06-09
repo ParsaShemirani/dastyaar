@@ -1,4 +1,4 @@
-from app.tools.sqlite3interface import SQLiteInterface
+from app.tools.sqliteinterface import SQLiteInterface
 from app.tools.settings import FILEBASE_FILE
 
 filebase_db = SQLiteInterface(FILEBASE_FILE)
