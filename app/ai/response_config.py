@@ -1,5 +1,5 @@
 from openai import OpenAI
-from app.config.settings import OPENAI_API_KEY
+from app.tools.settings import OPENAI_API_KEY
 from app.ai import conversation
 
 client = OpenAI()

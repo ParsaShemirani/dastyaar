@@ -1,5 +1,5 @@
 import requests
-from app.config.settings import GOOGLE_MAPS_API_KEY
+from app.tools.settings import GOOGLE_MAPS_API_KEY
 
 
 def get_route_data(origin, destination, mode):
