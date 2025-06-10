@@ -1,0 +1,30 @@
+
+CREATE TABLE files (
+    id INTEGER PRIMARY KEY,
+    name TEXT,
+    ts TEXT,
+    version_number INTEGER,
+    extension TEXT,
+    size INTEGER,
+    hash BLOB
+)
+
+CREATE TABLE groupings (
+
+)
+
+CREATE TABLE files_groupings (
+
+)
+
+CREATE TABLE locations(
+
+)
+
+CREATE TABLE files_locations (
+
+)
+
+CREATE TABLE files_parents (
+
+)

@@ -1,7 +1,7 @@
 #The sun set slowly, painting the sky with hues of orange.
 
-import file_functions
-import filebase_functions
+from app.tools import file_functions
+from app.tools import filebase_functions
 class FileData:
     def __init__(self, file_path:str):
         self.file_path = file_path
@@ -14,6 +14,15 @@ class FileData:
         self.hash = file_functions.generate_sha_hash(
             file_path=self.file_path
         )
+
+    def is_unique(self):
+        result = filebase_functions.get_file_id_via_hash(
+            hash=self.hash
+        )
+        if result is None:
+            return True
+        else:
+            return False
 
     def filld_version_number(self):
         filename_hash = file_functions.extract_hash_from_filename(
@@ -47,7 +56,7 @@ class FileData:
                 file_path=self.file_path
             )
     def filld_name(self):
-        self.version_number = file_functions.generate_new_filename(
+        self.name = file_functions.generate_new_filename(
             file_path=self.file_path,
             version_number=self.version_number,
             hash=self.hash

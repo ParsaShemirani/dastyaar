@@ -35,7 +35,7 @@ def get_file_id_via_hash(hash):
           fetch_one=True
      )
      if result is None:
-          return 0
+          return None
      return result['id']
 
 def insert_file(file_dict):
