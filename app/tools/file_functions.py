@@ -55,20 +55,12 @@ def copy_file(file_path,dst_dir):
     dst_path = os.path.join(dst_dir, filename)
     shutil.copy2(file_path, dst_path)
 
-def generate_new_filename(file_path, version_number, hash):
+
+def generate_new_filename(rootname, version_number, hash, extension):
     hex_hash = hash.hex()
-    if version_number == 1:
-        basename = os.path.basename(file_path)
-        filename, ext= os.path.splitext(basename)
-        result = f"{filename}-v{version_number}-{hex_hash}{ext}"
-        return result
-    pattern = r'^(.+)-v(\d+)-([0-9A-Fa-f]+)(\.[^.]+)$'
-    filename = os.path.basename(file_path)
-    m = re.match(pattern, filename)
-    basename = m.groups(1)
-    ext = m.groups(4)
-    result = f"{basename}-v{version_number}-{hex_hash}{ext}"
+    result = f"{rootname}-v{version_number}-{hex_hash}.{extension}"
     return result
+
 
 def extract_voice_rec_ts(file_path):    
     base = os.path.splitext(os.path.basename(file_path))[0]
@@ -80,9 +72,26 @@ def extract_voice_rec_ts(file_path):
     result = dt.strftime("%Y-%m-%d %H:%M:%S")
     return result
 
-def extract_hash_from_filename(file_path):
-    pattern = r'-v\d+-([a-f0-9]{64})(?:\.\w+)?$'
-    match = re.match(pattern, file_path)
+
+
+def extract_basename_from_file_path(file_path):
+    base = os.path.basename(file_path)
+    name,_=os.path.splitext(base)
+    return name
+
+
+def extract_rootname_from_basename(basename):
+    pattern = r'^(.*)-v\d+-[a-f0-9]{64}'
+
+    match = re.match(pattern, basename)
+    if match:
+        return match.group(1)
+    else:
+        return basename
+
+def extract_hash_from_basename(basename):
+    pattern = r'-v\d+-([a-f0-9]{64})\.\w+$'
+    match = re.search(pattern, basename)
     hex_hash = match.group(1) if match else None
 
     if hex_hash:

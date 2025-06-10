@@ -10,7 +10,7 @@ CREATE TABLE files (
 )
 
 
-CREATE VIRTUAL TABLE file_descriptions USING fts5(
+CREATE VIRTUAL TABLE files_descriptions USING fts5(
     file_id UNINDEXED,
     description
 )
@@ -68,7 +68,7 @@ sql_statements = [
     )
     """,
     """
-    CREATE VIRTUAL TABLE file_descriptions USING fts5(
+    CREATE VIRTUAL TABLE files_descriptions USING fts5(
         file_id UNINDEXED,
         description
     )
