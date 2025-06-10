@@ -5,6 +5,7 @@ filebase_db = SQLiteInterface(FILEBASE_FILE)
 
 #### SINCE SQLITE USES TEXT BASED DATES ANYWAYS, REMOVE
 #### TS PRECISION COLUMN AND PUT X MARKS ON UNPRECISE.
+#### journalbase-recording FOR ALL AUDIO UPLOADS!!! TIMID!!!
 
 def get_version_number_via_hash(hash):
     query = """
@@ -48,7 +49,7 @@ def insert_file(file_dict):
           ({placeholders})
      """
      values = tuple(file_dict.values())
-     
+
      filebase_db.execute_write(
           query=query,
           params=values,

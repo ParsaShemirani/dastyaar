@@ -37,7 +37,7 @@ class FileData:
         )
     
     def filld_version_number(self):
-        if self.basename == self.rootname:
+        if self.basename == f"{self.rootname}.{self.extension}":
             self.version_number = 1
         else:
             hash_from_basename = file_functions.extract_hash_from_basename(

@@ -75,9 +75,8 @@ def extract_voice_rec_ts(file_path):
 
 
 def extract_basename_from_file_path(file_path):
-    base = os.path.basename(file_path)
-    name,_=os.path.splitext(base)
-    return name
+    basename = os.path.basename(file_path)
+    return basename
 
 
 def extract_rootname_from_basename(basename):
