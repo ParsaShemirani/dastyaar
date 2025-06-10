@@ -19,7 +19,7 @@ def get_version_number_via_hash(hash):
          fetch_one=True
     )
     if result is None:
-         return 0
+         return None
     return result['version_number']
 
 def get_file_id_via_hash(hash):
@@ -48,7 +48,8 @@ def insert_file(file_dict):
           ({placeholders})
      """
      values = tuple(file_dict.values())
-     result = filebase_db.execute_write(
+     
+     filebase_db.execute_write(
           query=query,
           params=values,
           many=False

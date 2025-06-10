@@ -1,15 +1,12 @@
 from app.tools.filedata import FileData
-
+from app.tools.filebase_functions import insert_file
+from app.tools.audio_recording import interactive_transcribe
+import pprint
 def ingest_standard(file_path):
     file_object = FileData(file_path=file_path)
-    print('james')
 
-    file_object.filld_hash()
-
-    print('timidman')
-    print(file_object.hash)
-
-    if file_object.is_unique == False:
+    file_object.filld_hash() 
+    if file_object.is_unique() == False:
         print("File already exists in database")
         exit()
 
@@ -18,14 +15,27 @@ def ingest_standard(file_path):
     file_object.filld_extension()
     file_object.filld_ts()
     file_object.filld_name()
+    file_object.description = interactive_transcribe()
+    pprint.pprint(vars(file_object))
+    print("NOW TIME FOR TIMID")
 
-    print(file_object.hash)
-    print(file_object.version_number)
-    print(file_object.size)
-    print(file_object.extension)
-    print(file_object.ts)
-    print(file_object.name)
+    file_object.mastername = 'hello man'
+    file_object.timidman = 1234123
+    print(file_object.mastername)
+
+    file_dict = file_object.generate_file_dict()
+    pprint.pprint(file_dict)
+
+    insert_file(file_dict=file_dict)
 
 
+"""
+from app.tools.ingesting import ingest_standard
+ingest_standard('/Users/parsashemirani/Main/sonysdbefubuntu/101MSDCF/DSC00919.JPG')
+"""
 
+"""
+from app.tools.sqliteinterface import SQLiteInterface
+sqldb = SQLiteInterface('/Users/parsashemirani/Main/dastyaar/app/tools/filebase_test.db')
 
+"""

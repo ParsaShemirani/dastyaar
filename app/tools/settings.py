@@ -10,4 +10,4 @@ MYSQL_PASSWORD=os.getenv("MYSQL_PASSWORD")
 
 GOOGLE_MAPS_API_KEY=os.getenv("GOOGLE_MAPS_API_KEY")
 
-FILEBASE_FILE = "/Users/parsashemirani/Main/filebase.db"
+FILEBASE_FILE = "/Users/parsashemirani/Main/dastyaar/app/tools/filebase_test.db"

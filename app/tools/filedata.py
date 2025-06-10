@@ -6,8 +6,7 @@ class FileData:
     def __init__(self, file_path:str):
         self.file_path = file_path
         self.files_table_columns = [
-            'hash','version_number','size','extension','ts',
-            'ts_precision','name'
+            'hash','version_number','size','extension','ts','name'
         ]
         
     def filld_hash(self):
@@ -61,3 +60,11 @@ class FileData:
             version_number=self.version_number,
             hash=self.hash
         )
+    
+    def generate_file_dict(self):
+        file_dict = {}
+        for col in self.files_table_columns:
+            if hasattr(self,col):
+                file_dict[col] = getattr(self, col)
+
+        return file_dict
