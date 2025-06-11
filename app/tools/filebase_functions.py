@@ -55,3 +55,48 @@ def insert_file(file_dict):
           params=values,
           many=False
      )
+
+def associate_location(file_id, location_id):
+     query = """
+     INSERT INTO files_locations
+     (file_id, location_id)
+     VALUES
+     (?,?)
+     """
+     values = (file_id, location_id)
+
+     filebase_db.execute_write(
+          query=query,
+          params=values,
+          many=False
+     )
+
+def associate_groupings(file_id, grouping_id):
+     query = """
+     INSERT INTO files_groupings
+     (file_id, grouping_id)
+     VALUES
+     (?,?)
+     """
+     values = (file_id, grouping_id)
+
+     filebase_db.execute_write(
+          query=query,
+          params=values,
+          many=False
+     )
+
+def associate_description(file_id, description):
+     query = """
+     INSERT INTO files_descriptions
+     (file_id, description)
+     VALUES
+     (?,?)
+     """
+     values = (file_id, description)
+
+     filebase_db.execute_write(
+          query=query,
+          params=values,
+          many=False
+     )

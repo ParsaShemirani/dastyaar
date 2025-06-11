@@ -27,19 +27,19 @@ def get_created_time(file_path):
     stat = os.stat(file_path)
     unix_created = stat.st_birthtime if hasattr(stat, 'st_birthtime') else os.path.getctime(file_path)
     dt_created_time = datetime.fromtimestamp(unix_created, tz=timezone.utc)
-    result = dt_created_time.strftime("%Y-%m-%d %H:%M:%S")
+    result = dt_created_time.strftime("%Y-%m-%dT%H:%M:%S")
     return result
 
 def get_modified_time(file_path):
     stat = os.stat(file_path)
     unix_modified = stat.st_mtime
     dt_modified_time = datetime.fromtimestamp(unix_modified, tz=timezone.utc)
-    result = dt_modified_time.strftime("%Y-%m-%d %H:%M:%S")
+    result = dt_modified_time.strftime("%Y-%m-%dT%H:%M:%S")
     return result
 
 def get_current_time():
     dt_now = datetime.now(timezone.utc)
-    result = dt_now.strftime("%Y-%m-%d %H:%M:%S")
+    result = dt_now.strftime("%Y-%m-%dT%H:%M:%S")
     return result
 
 def generate_new_file_path(file_path,new_name):
@@ -69,14 +69,15 @@ def extract_voice_rec_ts(file_path):
         .replace(tzinfo=ZoneInfo("America/Los_Angeles"))
         .astimezone(ZoneInfo("UTC"))
     )
-    result = dt.strftime("%Y-%m-%d %H:%M:%S")
+    result = dt.strftime("%Y-%m-%dT%H:%M:%S")
     return result
 
 
 
 def extract_basename_from_file_path(file_path):
     basename = os.path.basename(file_path)
-    return basename
+    name, ext = os.path.splitext(basename)
+    return name + ext.lower()
 
 
 def extract_rootname_from_basename(basename):
@@ -86,7 +87,8 @@ def extract_rootname_from_basename(basename):
     if match:
         return match.group(1)
     else:
-        return basename
+        no_ext, ext = os.path.splitext(basename)
+        return no_ext
 
 def extract_hash_from_basename(basename):
     pattern = r'-v\d+-([a-f0-9]{64})\.\w+$'
@@ -96,3 +98,4 @@ def extract_hash_from_basename(basename):
     if hex_hash:
         return bytes.fromhex(hex_hash)
     return None
+

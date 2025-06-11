@@ -12,6 +12,21 @@ class FileData:
             file_path=self.file_path
         )
 
+    def filld_size(self):
+        self.size = file_functions.get_file_size(
+            file_path=self.file_path
+        )
+
+    def filld_extension(self):
+        self.extension = file_functions.get_file_extension(
+            file_path=self.file_path
+        )
+
+    def filld_universals(self):
+        self.filld_hash()
+        self.filld_size()
+        self.filld_extension()
+
     def is_unique(self):
         result = filebase_functions.get_file_id_via_hash(
             hash=self.hash
@@ -20,6 +35,16 @@ class FileData:
             return True
         else:
             return False
+        
+    def filld_ts(self):
+        if self.version_number == 1:
+            self.ts = file_functions.get_created_time(
+                file_path=self.file_path
+            )
+        else:
+            self.ts = file_functions.get_modified_time(
+                file_path=self.file_path
+            )
 
     def filld_basename(self):
         self.basename = file_functions.extract_basename_from_file_path(
@@ -31,11 +56,6 @@ class FileData:
             basename=self.basename
         )
 
-    def filld_extension(self):
-        self.extension = file_functions.get_file_extension(
-            file_path=self.file_path
-        )
-    
     def filld_version_number(self):
         if self.basename == f"{self.rootname}.{self.extension}":
             self.version_number = 1
@@ -56,20 +76,24 @@ class FileData:
             extension=self.extension
         )
 
-    def filld_size(self):
-        self.size = file_functions.get_file_size(
-            file_path=self.file_path
+    def filld_new_file_path(self):
+        self.new_file_path = file_functions.generate_new_file_path(
+            file_path=self.file_path,
+            new_name=self.name
         )
 
-    def filld_ts(self):
-        if self.version_number == 1:
-            self.ts = file_functions.get_created_time(
-                file_path=self.file_path
-            )
-        else:
-            self.ts = file_functions.get_modified_time(
-                file_path=self.file_path
-            )
+    def filld_standard_naming(self):
+        self.filld_basename()
+        self.filld_rootname()
+        self.filld_version_number()
+        self.filld_name()
+        self.filld_new_file_path()
+
+    def rename_file(self):
+        file_functions.rename_file(
+            file_path=self.file_path,
+            new_file_path=self.new_file_path
+        )
 
     def generate_file_dict(self):
         file_dict = {}
@@ -77,3 +101,8 @@ class FileData:
             if hasattr(self,col):
                 file_dict[col] = getattr(self, col)
         return file_dict
+    
+    def filld_file_id(self):
+        self.file_id = filebase_functions.get_file_id_via_hash(
+            hash=self.hash
+        )
