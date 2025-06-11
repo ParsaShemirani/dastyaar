@@ -100,3 +100,18 @@ def associate_description(file_id, description):
           params=values,
           many=False
      )
+
+def associate_previous_id(file_id, previous_id):
+     query = """
+     INSERT INTO previous_ids
+     (file_id, previous_id)
+     VALUES
+     (?,?)
+     """
+     values = (file_id,previous_id)
+
+     filebase_db.execute_write(
+          query=query,
+          params=values,
+          many=False
+     )

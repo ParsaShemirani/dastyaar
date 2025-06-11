@@ -56,17 +56,26 @@ class FileData:
             basename=self.basename
         )
 
+    def filld_hash_from_basename(self):
+        self.hash_from_basename = file_functions.extract_hash_from_basename(
+            basename=self.basename
+        )
+
     def filld_version_number(self):
         if self.basename == f"{self.rootname}.{self.extension}":
             self.version_number = 1
         else:
-            hash_from_basename = file_functions.extract_hash_from_basename(
-                basename=self.basename
-            )
+            self.filld_hash_from_basename()
             parent_version = filebase_functions.get_version_number_via_hash(
-                hash=hash_from_basename
+                hash=self.hash_from_basename
             )
             self.version_number = parent_version + 1
+    
+    def filld_previous_id(self):
+        if self.version_number != 1:
+            self.previous_id = filebase_functions.get_file_id_via_hash(
+                hash=self.hash_from_basename
+            )
 
     def filld_name(self):
         self.name = file_functions.generate_new_filename(
@@ -94,6 +103,19 @@ class FileData:
             file_path=self.file_path,
             new_file_path=self.new_file_path
         )
+    
+    def copy_file_to_intake(self):
+        res = file_functions.scp_copy(
+            local_path=self.new_file_path,
+            remote_user='parsa',
+            remote_host='192.168.1.4',
+            remote_path='/home/parsa/baseman'
+        )
+
+    def remove_file(self):
+        file_functions.remove_file(
+            file_path=self.new_file_path
+        )
 
     def generate_file_dict(self):
         file_dict = {}
@@ -105,4 +127,17 @@ class FileData:
     def filld_file_id(self):
         self.file_id = filebase_functions.get_file_id_via_hash(
             hash=self.hash
+        )
+
+    def handle_groupings(self):
+        for grouping in self.groupings:
+            filebase_functions.associate_groupings(
+                file_id=self.file_id,
+                grouping_id=grouping
+            )
+
+    def handle_previous_ids(self):
+        filebase_functions.associate_previous_id(
+            file_id=self.file_id,
+            previous_id=self.previous_id
         )

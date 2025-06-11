@@ -1,11 +1,14 @@
 from app.tools.filedata import FileData
+from app.tools import file_functions as ff
 from app.tools import filebase_functions as fbf
 from app.tools.audio_recording import interactive_transcribe
 from pprint import pprint
+import os
+import subprocess
 
 
 
-def main(file_path):
+def main(file_path, groupings):
     file_object = FileData(file_path=file_path)
 
     file_object.filld_universals()
@@ -13,12 +16,14 @@ def main(file_path):
         raise Exception("File already exists in filebase")
     file_object.filld_ts
     file_object.filld_standard_naming()
-    file_object.rename_file()
 
     file_dict = file_object.generate_file_dict()
     fbf.insert_file(file_dict=file_dict)
     file_object.filld_file_id()
 
+
+    # Description
+    subprocess.run(['open', file_object.file_path])
     user_choice = input("Press enter to record description, anything else otherwise.")
     if user_choice == "":
         file_object.description = interactive_transcribe()
@@ -27,26 +32,69 @@ def main(file_path):
             description=file_object.description
         )
 
+    # Location
     fbf.associate_location(
         file_id=file_object.file_id,
         location_id=1
     )
 
-    #file_object.groupings = [3]
-    if hasattr(file_object, 'groupings'):
-        for grouping in file_object.groupings:
-            fbf.associate_groupings(
-                file_id=file_object.file_id,
-                grouping_id=grouping
-            )
+    # Groupings
+    if groupings != []:
+        file_object.groupings = groupings
+        file_object.handle_groupings
+
+    # Previous ids
+    if file_object.version_number != 0:
+        file_object.filld_previous_id()
+        file_object.handle_previous_ids()
+
+
+    # Rename | Copy | Remove setup
+    file_object.rename_file()
+    ff.copy_file(
+        file_path=file_object.new_file_path,
+        dst_dir="/Users/parsashemirani/Main/revampbase"
+    )
+    ff.copy_file(
+        file_path=file_object.new_file_path,
+        dst_dir="/Users/parsashemirani/Main/ingested"
+    )
+    file_object.remove_file()
 
     print("All attributes:")
     pprint(vars(file_object))
 
 
+
+
+
+def folder_main():
+    folder_path = "/Users/parsashemirani/Main/to_ingest"
+
+    groupings = []
+
+    for filename in os.listdir(folder_path):
+        file_path = os.path.join(folder_path, filename)
+        if filename.startswith('.') or not os.path.isfile(file_path):
+            continue
+        print(f"\nProcessing file: {filename}")
+
+        main(
+            file_path=file_path,
+            groupings=groupings
+        )
+
+"""
+from app.tools.tester import folder_main as fm
+fm()
+"""
+
+
+
+
 """F
 from app.tools.tester import main as wicked
-wicked('/Users/parsashemirani/Main/Inbox/testingests/DSC00871-v2-708608ae623c4272186a20170c1bc99665b454f99d71f4ec73fe65bab38f0b84.jpg')
+wicked('/Users/parsashemirani/Main/Inbox/testingests/DSC00870-v1-1de38affeefc4fc5db46fdd165892e57a7b0023daf36144236ca746a10af6cf6.jpg')
 
 """
 """

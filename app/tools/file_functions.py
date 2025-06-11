@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 import shutil
 import re
 from zoneinfo import ZoneInfo
-
+import subprocess
 
 def generate_sha_hash(file_path):
     sha256_hash = hashlib.sha256()
@@ -98,4 +98,14 @@ def extract_hash_from_basename(basename):
     if hex_hash:
         return bytes.fromhex(hex_hash)
     return None
+
+def scp_copy(local_path, remote_user, remote_host, remote_path):
+    command = ['scp', local_path, f'{remote_user}@{remote_host}:{remote_path}']
+    result = subprocess.run(command, capture_output=True, text=True)
+    if result.returncode != 0:
+        raise Exception("SCP copy did not work")
+
+
+def remove_file(file_path):
+    os.remove(file_path)
 

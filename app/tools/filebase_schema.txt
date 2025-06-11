@@ -46,7 +46,7 @@ CREATE TABLE files_locations (
 )
 
 
-CREATE TABLE files_parents (
+CREATE TABLE previous_ids (
     file_id INTEGER,
     parent_id INTEGER
 )
@@ -104,7 +104,7 @@ sql_statements = [
     )
     """,
     """
-    CREATE TABLE files_parents (
+    CREATE TABLE previous_ids (
         file_id INTEGER,
         parent_id INTEGER
     )
