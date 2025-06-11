@@ -1,6 +1,5 @@
 from app.tools.filedata import FileData
 from app.tools import file_functions as ff
-from app.tools import filebase_functions as fbf
 from app.tools.audio_recording import interactive_transcribe
 from pprint import pprint
 import os
@@ -10,44 +9,37 @@ import subprocess
 
 def main(file_path, groupings):
     file_object = FileData(file_path=file_path)
+    file_object.filld_standard()
 
-    file_object.filld_universals()
     if not file_object.is_unique():
         raise Exception("File already exists in filebase")
-    file_object.filld_ts
-    file_object.filld_standard_naming()
-
-    file_dict = file_object.generate_file_dict()
-    fbf.insert_file(file_dict=file_dict)
-    file_object.filld_file_id()
-
-
-    # Description
+    
+    # Display file_dict and open the file
+    print("file_dict:")
+    pprint(file_object.file_dict)
     subprocess.run(['open', file_object.file_path])
-    user_choice = input("Press enter to record description, anything else otherwise.")
-    if user_choice == "":
+
+    if input("Press enter to procede, anything else otherwise.") == "":
+        file_object.insert_and_filld_id()
+    else:
+        exit()
+
+    
+    # Description
+    if input("Press enter to record description, anything else otherwise.") == "":
         file_object.description = interactive_transcribe()
-        fbf.associate_description(
-            file_id=file_object.file_id,
-            description=file_object.description
-        )
+
 
     # Location
-    fbf.associate_location(
-        file_id=file_object.file_id,
-        location_id=1
-    )
+    file_object.location_id = 1
 
     # Groupings
     if groupings != []:
         file_object.groupings = groupings
-        file_object.handle_groupings
 
-    # Previous ids
-    if file_object.version_number != 0:
-        file_object.filld_previous_id()
-        file_object.handle_previous_ids()
 
+    # Handle all
+    file_object.handle_all()
 
     # Rename | Copy | Remove setup
     file_object.rename_file()
@@ -71,13 +63,13 @@ def main(file_path, groupings):
 def folder_main():
     folder_path = "/Users/parsashemirani/Main/to_ingest"
 
-    groupings = []
+    groupings = [1]
 
     for filename in os.listdir(folder_path):
         file_path = os.path.join(folder_path, filename)
         if filename.startswith('.') or not os.path.isfile(file_path):
             continue
-        print(f"\nProcessing file: {filename}")
+        print(f"\n\n\n\n\n\nProcessing file: {filename}")
 
         main(
             file_path=file_path,
@@ -102,10 +94,10 @@ from app.tools.sqliteinterface import SQLiteInterface
 from app.tools.settings import FILEBASE_FILE
 from pprint import pprint
 sqldb = SQLiteInterface(FILEBASE_FILE)
-read = sqldb.execute_read
-write = sqldb.execute_write
+r = sqldb.execute_read
+w = sqldb.execute_write
 
-def output(james):
+def o(james):
     for row in james:
         print("\nNEWMAN\n")
         pprint(dict(row))

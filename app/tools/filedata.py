@@ -22,29 +22,6 @@ class FileData:
             file_path=self.file_path
         )
 
-    def filld_universals(self):
-        self.filld_hash()
-        self.filld_size()
-        self.filld_extension()
-
-    def is_unique(self):
-        result = filebase_functions.get_file_id_via_hash(
-            hash=self.hash
-        )
-        if result is None:
-            return True
-        else:
-            return False
-        
-    def filld_ts(self):
-        if self.version_number == 1:
-            self.ts = file_functions.get_created_time(
-                file_path=self.file_path
-            )
-        else:
-            self.ts = file_functions.get_modified_time(
-                file_path=self.file_path
-            )
 
     def filld_basename(self):
         self.basename = file_functions.extract_basename_from_file_path(
@@ -61,21 +38,16 @@ class FileData:
             basename=self.basename
         )
 
-    def filld_version_number(self):
-        if self.basename == f"{self.rootname}.{self.extension}":
-            self.version_number = 1
-        else:
-            self.filld_hash_from_basename()
-            parent_version = filebase_functions.get_version_number_via_hash(
-                hash=self.hash_from_basename
-            )
-            self.version_number = parent_version + 1
-    
     def filld_previous_id(self):
-        if self.version_number != 1:
-            self.previous_id = filebase_functions.get_file_id_via_hash(
-                hash=self.hash_from_basename
-            )
+        self.previous_id = filebase_functions.get_file_id_via_hash(
+            hash=self.hash_from_basename
+        )
+
+    def filld_updated_version_number(self):
+        parent_version = filebase_functions.get_version_number_via_hash(
+            hash=self.hash_from_basename
+        )
+        self.version_number = parent_version + 1
 
     def filld_name(self):
         self.name = file_functions.generate_new_filename(
@@ -91,25 +63,122 @@ class FileData:
             new_name=self.name
         )
 
-    def filld_standard_naming(self):
+    def filld_created_ts(self):
+        self.ts = file_functions.get_created_time(
+            file_path=self.file_path
+        )
+
+    def filld_modifed_ts(self):
+        self.ts = file_functions.get_modified_time(
+            file_path=self.file_path
+        )
+
+    def filld_file_dict(self):
+        file_dict = {}
+        for col in self.files_table_columns:
+            if hasattr(self,col):
+                file_dict[col] = getattr(self, col)
+        self.file_dict = file_dict
+    
+
+
+
+    # GROUP FILLD
+
+    def filld_universals(self):
+        self.filld_hash()
+        self.filld_size()
+        self.filld_extension()
+
+    def filld_standard(self):
+        self.filld_universals()
         self.filld_basename()
         self.filld_rootname()
-        self.filld_version_number()
+        self.filld_hash_from_basename()
+
+        if self.hash_from_basename is not None:
+            self.filld_previous_id()
+            self.filld_updated_version_number()
+            self.filld_modifed_ts()
+        else:
+            self.version_number = 1
+            self.filld_created_ts()
+
         self.filld_name()
         self.filld_new_file_path()
+        self.filld_file_dict()
 
+
+
+
+    # FILEBASE INVOLVEMENT
+    def is_unique(self):
+        result = filebase_functions.get_file_id_via_hash(
+            hash=self.hash
+        )
+        if result is None:
+            return True
+        else:
+            return False
+        
+    def insert_file_dict(self):
+        filebase_functions.insert_file(
+            file_dict=self.file_dict
+        )
+
+    def filld_file_id(self):
+        self.file_id = filebase_functions.get_file_id_via_hash(
+            hash=self.hash
+        )
+
+    def insert_and_filld_id(self):
+        self.insert_file_dict()
+        self.filld_file_id()
+
+
+
+    # OTHER TABLES RELATED
+    def handle_groupings(self):
+        if hasattr(self, 'groupings'):
+            for grouping in self.groupings:
+                filebase_functions.associate_groupings(
+                    file_id=self.file_id,
+                    grouping_id=grouping
+                )
+
+    def handle_previous_id(self):
+        if hasattr(self, 'previous_id'):
+            filebase_functions.associate_previous_id(
+                file_id=self.file_id,
+                previous_id=self.previous_id
+            )
+    
+    def handle_description(self):
+        if hasattr(self, 'description'):
+            filebase_functions.associate_description(
+                file_id=self.file_id,
+                description=self.description
+            )
+
+    def handle_location(self):
+        if hasattr(self, 'location_id'):
+            filebase_functions.associate_location(
+                file_id=self.file_id,
+                location_id=self.location_id
+            )
+
+    def handle_all(self):
+        self.handle_groupings()
+        self.handle_previous_id()
+        self.handle_description()
+        self.handle_location()
+
+
+    # RENAME | REMOVE
     def rename_file(self):
         file_functions.rename_file(
             file_path=self.file_path,
             new_file_path=self.new_file_path
-        )
-    
-    def copy_file_to_intake(self):
-        res = file_functions.scp_copy(
-            local_path=self.new_file_path,
-            remote_user='parsa',
-            remote_host='192.168.1.4',
-            remote_path='/home/parsa/baseman'
         )
 
     def remove_file(self):
@@ -117,27 +186,5 @@ class FileData:
             file_path=self.new_file_path
         )
 
-    def generate_file_dict(self):
-        file_dict = {}
-        for col in self.files_table_columns:
-            if hasattr(self,col):
-                file_dict[col] = getattr(self, col)
-        return file_dict
-    
-    def filld_file_id(self):
-        self.file_id = filebase_functions.get_file_id_via_hash(
-            hash=self.hash
-        )
 
-    def handle_groupings(self):
-        for grouping in self.groupings:
-            filebase_functions.associate_groupings(
-                file_id=self.file_id,
-                grouping_id=grouping
-            )
 
-    def handle_previous_ids(self):
-        filebase_functions.associate_previous_id(
-            file_id=self.file_id,
-            previous_id=self.previous_id
-        )
