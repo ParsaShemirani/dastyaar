@@ -19,16 +19,15 @@ def main(file_path):
     file_object.rootname = "journalbase_recording"
     file_object.filld_name()
     file_object.filld_new_file_path()
-    file_dict = file_object.generate_file_dict()
-    fbf.insert_file(file_dict=file_dict)
-    file_object.filld_file_id()
+    file_object.filld_file_dict()
+    file_object.insert_file_dict()
 
-    fbf.associate_location(
-        file_id=file_object.file_id,
-        location_id=1
-    )
+    file_object.location_id = 1
+
+    file_object.associate_all()
 
     file_object.rename_file()
+    
     ff.copy_file(
         file_path=file_object.new_file_path,
         dst_dir="/Users/parsashemirani/Main/revampbase"

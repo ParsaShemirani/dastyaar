@@ -125,20 +125,15 @@ class FileData:
         filebase_functions.insert_file(
             file_dict=self.file_dict
         )
-
-    def filld_file_id(self):
         self.file_id = filebase_functions.get_file_id_via_hash(
             hash=self.hash
         )
 
-    def insert_and_filld_id(self):
-        self.insert_file_dict()
-        self.filld_file_id()
 
 
 
     # OTHER TABLES RELATED
-    def handle_groupings(self):
+    def associate_groupings(self):
         if hasattr(self, 'groupings'):
             for grouping in self.groupings:
                 filebase_functions.associate_groupings(
@@ -146,32 +141,32 @@ class FileData:
                     grouping_id=grouping
                 )
 
-    def handle_previous_id(self):
+    def associate_previous_id(self):
         if hasattr(self, 'previous_id'):
             filebase_functions.associate_previous_id(
                 file_id=self.file_id,
                 previous_id=self.previous_id
             )
     
-    def handle_description(self):
+    def associate_description(self):
         if hasattr(self, 'description'):
             filebase_functions.associate_description(
                 file_id=self.file_id,
                 description=self.description
             )
 
-    def handle_location(self):
+    def associate_location(self):
         if hasattr(self, 'location_id'):
             filebase_functions.associate_location(
                 file_id=self.file_id,
                 location_id=self.location_id
             )
 
-    def handle_all(self):
-        self.handle_groupings()
-        self.handle_previous_id()
-        self.handle_description()
-        self.handle_location()
+    def associate_all(self):
+        self.associate_groupings()
+        self.associate_previous_id()
+        self.associate_description()
+        self.associate_location()
 
 
     # RENAME | REMOVE

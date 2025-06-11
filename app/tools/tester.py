@@ -17,10 +17,11 @@ def main(file_path, groupings):
     # Display file_dict and open the file
     print("file_dict:")
     pprint(file_object.file_dict)
-    subprocess.run(['open', file_object.file_path])
+    if file_object.extension in ('jpg', 'mp4', 'png', 'txt', 'mov', 'm4a', 'mp3'):
+        subprocess.run(['open', file_object.file_path])
 
     if input("Press enter to procede, anything else otherwise.") == "":
-        file_object.insert_and_filld_id()
+        file_object.insert_file_dict()
     else:
         exit()
 
@@ -38,8 +39,8 @@ def main(file_path, groupings):
         file_object.groupings = groupings
 
 
-    # Handle all
-    file_object.handle_all()
+    # Associate all
+    file_object.associate_all()
 
     # Rename | Copy | Remove setup
     file_object.rename_file()
@@ -63,7 +64,7 @@ def main(file_path, groupings):
 def folder_main():
     folder_path = "/Users/parsashemirani/Main/to_ingest"
 
-    groupings = [1]
+    groupings = []
 
     for filename in os.listdir(folder_path):
         file_path = os.path.join(folder_path, filename)
@@ -83,12 +84,6 @@ fm()
 
 
 
-
-"""F
-from app.tools.tester import main as wicked
-wicked('/Users/parsashemirani/Main/Inbox/testingests/DSC00870-v1-1de38affeefc4fc5db46fdd165892e57a7b0023daf36144236ca746a10af6cf6.jpg')
-
-"""
 """
 from app.tools.sqliteinterface import SQLiteInterface
 from app.tools.settings import FILEBASE_FILE
