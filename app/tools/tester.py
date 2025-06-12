@@ -17,7 +17,7 @@ def main(file_path, groupings):
     # Display file_dict and open the file
     print("file_dict:")
     pprint(file_object.file_dict)
-    if file_object.extension in ('jpg', 'mp4', 'png', 'txt', 'mov', 'm4a', 'mp3'):
+    if file_object.extension in ('jpg', 'mp4', 'png', 'txt', 'mov', 'm4a', 'mp3', 'avi'):
         subprocess.run(['open', file_object.file_path])
 
     if input("Press enter to procede, anything else otherwise.") == "":

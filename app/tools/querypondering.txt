@@ -1,0 +1,83 @@
+Please use the following sqlite3 schema to come up with a query that accomplishes the request. 
+Write your response in a 'request, query' format, writing the english request, 
+along with the query that coresponds with it. After the .schema defentiion,
+you will also be provided with an example 'file' from the 'files table with its column info for reference.
+
+Schema:
+sqlite> .schema
+CREATE TABLE files (
+        id INTEGER PRIMARY KEY,
+        name TEXT,
+        ts TEXT,
+        version_number INTEGER,
+        extension TEXT,
+        size INTEGER,
+        hash BLOB
+    );
+CREATE TABLE groupings (
+        id INTEGER PRIMARY KEY,
+        name TEXT
+    );
+
+CREATE TABLE files_groupings (
+        file_id INTEGER,
+        grouping_id INTEGER
+    );
+CREATE TABLE locations(
+        id INTEGER PRIMARY KEY,
+        name TEXT
+    );
+CREATE TABLE files_locations (
+        file_id INTEGER,
+        location_id INTEGER
+    );
+CREATE TABLE IF NOT EXISTS "previous_ids" (
+        file_id INTEGER,
+        previous_id INTEGER
+    );
+CREATE VIRTUAL TABLE descriptions USING fts5(
+    file_id UNINDEXED,
+    description
+)
+/* descriptions(file_id,description) */;
+CREATE TABLE IF NOT EXISTS 'descriptions_data'(id INTEGER PRIMARY KEY, block BLOB);
+CREATE TABLE IF NOT EXISTS 'descriptions_idx'(segid, term, pgno, PRIMARY KEY(segid, term)) WITHOUT ROWID;
+CREATE TABLE IF NOT EXISTS 'descriptions_content'(id INTEGER PRIMARY KEY, c0, c1);
+CREATE TABLE IF NOT EXISTS 'descriptions_docsize'(id INTEGER PRIMARY KEY, sz BLOB);
+CREATE TABLE IF NOT EXISTS 'descriptions_config'(k PRIMARY KEY, v) WITHOUT ROWID;
+sqlite> 
+
+
+Files example:
+>>> result = r("SELECT * FROM files ORDER BY id DESC LIMIT 1;")
+>>> for row in result:
+...     pprint(dict(row))
+...     
+{'extension': 'txt',
+ 'hash': b'f<\x95\xc5\x06\xb70\xe5kS^\xd1\xe5)u\xb3<f\x01.#\xa9x\xedt\x90r\xc1'
+         b'\xfd.L1',
+ 'id': 85,
+ 'name': 'planmaster-v3-663c95c506b730e56b535ed1e52975b33c66012e23a978ed749072c1fd2e4c31.txt',
+ 'size': 299,
+ 'ts': '2025-06-11T21:08:29Z',
+ 'version_number': 3}
+>>> 
+
+
+
+
+Requests:
+
+I want to see the file id and description of
+every file that have a description like
+"dropping hammer off of backyard porch".
+
+I want to see the file id and names and description
+of every file that has a ts within 1 week
+proximity to the ts of file id 23.
+
+I want to see the file id, name, and description of 
+all the videos from feburary 2022.
+
+I want to see the file id and name and description of
+every file that is in the group called richard_visit

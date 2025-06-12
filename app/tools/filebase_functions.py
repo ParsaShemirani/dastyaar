@@ -88,7 +88,7 @@ def associate_groupings(file_id, grouping_id):
 
 def associate_description(file_id, description):
      query = """
-     INSERT INTO files_descriptions
+     INSERT INTO fdescriptions
      (file_id, description)
      VALUES
      (?,?)

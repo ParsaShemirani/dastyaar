@@ -10,7 +10,7 @@ CREATE TABLE files (
 )
 
 
-CREATE VIRTUAL TABLE files_descriptions USING fts5(
+CREATE VIRTUAL TABLE fdescriptions USING fts5(
     file_id UNINDEXED,
     description
 )
@@ -21,12 +21,10 @@ CREATE TABLE groupings (
     name TEXT
 )
 
-
-CREATE VIRTUAL TABLE groupings_descriptions USING fts5(
+CREATE VIRTUAL TABLE gdescriptions USING fts5(
     grouping_id UNINDEXED,
     description
 )
-
 
 CREATE TABLE files_groupings (
     file_id INTEGER,
@@ -48,9 +46,9 @@ CREATE TABLE files_locations (
 
 CREATE TABLE previous_ids (
     file_id INTEGER,
-    parent_id INTEGER
+    previous_id INTEGER
 )
-
+----------------------------------------------------------------------------
 
 
 Pythonic:
@@ -68,7 +66,7 @@ sql_statements = [
     )
     """,
     """
-    CREATE VIRTUAL TABLE files_descriptions USING fts5(
+    CREATE VIRTUAL TABLE fdescriptions USING fts5(
         file_id UNINDEXED,
         description
     )
@@ -79,8 +77,7 @@ sql_statements = [
         name TEXT
     )
     """,
-    """
-    CREATE VIRTUAL TABLE groupings_descriptions USING fts5(
+    CREATE VIRTUAL TABLE gdescriptions USING fts5(
         grouping_id UNINDEXED,
         description
     )
@@ -106,7 +103,7 @@ sql_statements = [
     """
     CREATE TABLE previous_ids (
         file_id INTEGER,
-        parent_id INTEGER
+        previous_id INTEGER
     )
     """
 ]
