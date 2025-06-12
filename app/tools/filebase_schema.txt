@@ -8,107 +8,42 @@ CREATE TABLE files (
     extension TEXT,
     size INTEGER,
     hash BLOB
-)
-
-
-CREATE VIRTUAL TABLE fdescriptions USING fts5(
-    file_id UNINDEXED,
-    description
-)
-
-
-CREATE TABLE groupings (
-    id INTEGER PRIMARY KEY,
-    name TEXT
-)
-
-CREATE VIRTUAL TABLE gdescriptions USING fts5(
-    grouping_id UNINDEXED,
-    description
-)
-
-CREATE TABLE files_groupings (
-    file_id INTEGER,
-    grouping_id INTEGER
-)
-
-
-CREATE TABLE locations(
-    id INTEGER PRIMARY KEY,
-    name TEXT
-)
-
-
-CREATE TABLE files_locations (
-    file_id INTEGER,
-    location_id INTEGER
-)
-
+);
 
 CREATE TABLE previous_ids (
     file_id INTEGER,
     previous_id INTEGER
-)
-----------------------------------------------------------------------------
+);
+
+CREATE VIRTUAL TABLE fdescriptions USING fts5 (
+    file_id UNINDEXED,
+    description
+);
+
+CREATE TABLE groupings (
+    id INTEGER PRIMARY KEY,
+    name TEXT
+);
+
+CREATE TABLE files_groupings (
+    file_id INTEGER,
+    grouping_id INTEGER
+);
+
+CREATE VIRTUAL TABLE gdescriptions USING fts5(
+    grouping_id UNINDEXED,
+    description
+);
+
+CREATE TABLE locations (
+    id INTEGER PRIMARY KEY,
+    name TEXT
+);
+
+CREATE TABLE files_locations (
+    file_id INTEGER,
+    location_id INTEGER
+);
 
 
-Pythonic:
 
-sql_statements = [
-    """
-    CREATE TABLE files (
-        id INTEGER PRIMARY KEY,
-        name TEXT,
-        ts TEXT,
-        ingested_ts TEXT,
-        version_number INTEGER,
-        extension TEXT,
-        size INTEGER,
-        hash BLOB
-    )
-    """,
-    """
-    CREATE VIRTUAL TABLE fdescriptions USING fts5(
-        file_id UNINDEXED,
-        description
-    )
-    """,
-    """
-    CREATE TABLE groupings (
-        id INTEGER PRIMARY KEY,
-        name TEXT
-    )
-    """,
-    CREATE VIRTUAL TABLE gdescriptions USING fts5(
-        grouping_id UNINDEXED,
-        description
-    )
-    """,
-    """
-    CREATE TABLE files_groupings (
-        file_id INTEGER,
-        grouping_id INTEGER
-    )
-    """,
-    """
-    CREATE TABLE locations(
-        id INTEGER PRIMARY KEY,
-        name TEXT
-    )
-    """,
-    """
-    CREATE TABLE files_locations (
-        file_id INTEGER,
-        location_id INTEGER
-    )
-    """,
-    """
-    CREATE TABLE previous_ids (
-        file_id INTEGER,
-        previous_id INTEGER
-    )
-    """
-]
-
-for stmt in sql_statements:
-    james.execute_write(stmt)
