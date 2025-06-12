@@ -44,10 +44,21 @@ def main(file_path, groupings):
 
     # Rename | Copy | Remove setup
     file_object.rename_file()
+
+    """
     ff.copy_file(
         file_path=file_object.new_file_path,
         dst_dir="/Users/parsashemirani/Main/revampbase"
     )
+    """
+    print("SCP Copying file")
+    ff.scp_copy(
+        local_path=file_object.new_file_path,
+        remote_user='parsa',
+        remote_host='192.168.1.4',
+        remote_path='/mnt/wdhd'
+    )
+    print("SCP copy done")
     ff.copy_file(
         file_path=file_object.new_file_path,
         dst_dir="/Users/parsashemirani/Main/ingested"
@@ -63,7 +74,7 @@ def main(file_path, groupings):
 
 def folder_main():
     folder_path = "/Users/parsashemirani/Main/to_ingest"
-    groupings = [9]
+    groupings = []
     for i in range(3):
         print("CHECK GROUPINGS\n")
         print(groupings)

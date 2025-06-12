@@ -44,7 +44,18 @@ def ids_in_grouping(grouping_id):
     file_ids = [row['file_id'] for row in result]
     return file_ids
 
-
+def get_file_name_via_id(file_id):
+    query = """
+    SELECT name
+    FROM files
+    WHERE id = ?
+    """
+    result = filebase_db.execute_read(
+        query=query,
+        params=(file_id,),
+        fetch_one=True
+    )
+    return result['name']
 
 
 
@@ -60,4 +71,5 @@ def o(james):
 
 """
 from app.tools.sqlqueries import ids_in_grouping as iig
+from app.tools.sqlqueries import get_file_name_via_id as gfnvi
 """

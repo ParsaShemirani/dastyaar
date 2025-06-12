@@ -3,10 +3,6 @@ from app.tools.settings import FILEBASE_FILE
 
 filebase_db = SQLiteInterface(FILEBASE_FILE)
 
-#### SINCE SQLITE USES TEXT BASED DATES ANYWAYS, REMOVE
-#### TS PRECISION COLUMN AND PUT X MARKS ON UNPRECISE.
-#### journalbase-recording FOR ALL AUDIO UPLOADS!!! TIMID!!!
-
 def get_version_number_via_hash(hash):
     query = """
     SELECT 
@@ -115,3 +111,51 @@ def associate_previous_id(file_id, previous_id):
           params=values,
           many=False
      )
+
+# Groupings
+
+def make_new_grouping(grouping_name, description):
+    query = """
+    INSERT INTO groupings
+    (name)
+    VALUES
+    (?)
+    """
+    values = (grouping_name,)
+
+    filebase_db.execute_write(
+        query=query,
+        params=values,
+        many=False
+    )
+
+    id_fetch = filebase_db.execute_read(
+        query="SELECT id FROM groupings ORDER BY id DESC LIMIT 1",
+    )
+    grouping_id = dict(id_fetch[0])['id']
+
+    query = """
+    INSERT INTO gdescriptions
+    (grouping_id, description)
+    VALUES
+    (?,?)
+    """
+    filebase_db.execute_write(
+        query=query,
+        params=(grouping_id, description),
+        many=False
+    )
+
+    query = """
+    SELECT groupings.id, groupings.name, gdescriptions.description
+    FROM groupings
+    JOIN gdescriptions ON groupings.id = gdescriptions.grouping_id
+    WHERE groupings.id = ?
+    """
+    result = filebase_db.execute_read(
+        query=query,
+        params=(grouping_id,),
+        fetch_one=False
+    )
+
+    return result

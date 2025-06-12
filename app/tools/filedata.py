@@ -4,7 +4,7 @@ class FileData:
     def __init__(self, file_path:str):
         self.file_path = file_path
         self.files_table_columns = [
-            'hash','version_number','size','extension','ts','name'
+            'hash','size','extension','version_number','name','ts','ingested_ts'
         ]
 
     def filld_hash(self):
@@ -73,6 +73,9 @@ class FileData:
             file_path=self.file_path
         )
 
+    def filld_ingested_ts(self):
+        self.ingested_ts = file_functions.get_current_time()
+
     def filld_file_dict(self):
         file_dict = {}
         for col in self.files_table_columns:
@@ -83,15 +86,12 @@ class FileData:
 
 
 
-    # GROUP FILLD
-
-    def filld_universals(self):
+    # BATCH FILLD
+    
+    def filld_standard(self):
         self.filld_hash()
         self.filld_size()
         self.filld_extension()
-
-    def filld_standard(self):
-        self.filld_universals()
         self.filld_basename()
         self.filld_rootname()
         self.filld_hash_from_basename()
@@ -103,7 +103,7 @@ class FileData:
         else:
             self.version_number = 1
             self.filld_created_ts()
-
+        self.filld_ingested_ts()
         self.filld_name()
         self.filld_new_file_path()
         self.filld_file_dict()

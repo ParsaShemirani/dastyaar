@@ -105,8 +105,7 @@ def scp_copy(local_path, remote_user, remote_host, remote_path):
     command = ['scp', local_path, f'{remote_user}@{remote_host}:{remote_path}']
     result = subprocess.run(command, capture_output=True, text=True)
     if result.returncode != 0:
-        raise Exception("SCP copy did not work")
-
+        raise Exception(f"SCP copy did not work {Exception}")
 
 def remove_file(file_path):
     os.remove(file_path)
