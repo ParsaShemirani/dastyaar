@@ -19,7 +19,7 @@ def match_description(description):
     FROM files
     JOIN fdescriptions
     ON files.id = fdescriptions.file_id
-    WHERE description MATCH ?
+    WHERE fdescriptions.description MATCH ?
     ORDER BY relevance ASC
     LIMIT 5
     """
@@ -29,6 +29,20 @@ def match_description(description):
         fetch_one=False
     )
     return result
+
+def ids_in_grouping(grouping_id):
+    query = """
+    SELECT file_id
+    FROM files_groupings
+    WHERE grouping_id = ?
+    """
+    result = filebase_db.execute_read(
+        query=query,
+        params=(grouping_id,),
+        fetch_one=False
+    )
+    file_ids = [row['file_id'] for row in result]
+    return file_ids
 
 
 
@@ -44,3 +58,6 @@ def o(james):
         pprint(dict(row))
 """
 
+"""
+from app.tools.sqlqueries import ids_in_grouping as iig
+"""

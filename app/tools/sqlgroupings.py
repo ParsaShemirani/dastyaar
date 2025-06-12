@@ -49,12 +49,36 @@ def make_new_grouping(grouping_name, description):
         fetch_one=False
     )
     print("\n\n\n")
-    
+
     for row in result:
         pprint(dict(row))
+    return result
+
+def match_gdescription(description):
+    words = description.strip().split()
+    values = " OR ".join(words)
+    query = """
+    SELECT groupings.name, groupings.id, gdescriptions.description,
+    bm25(gdescriptions) AS relevance
+    FROM groupings
+    JOIN gdescriptions
+    ON groupings.id = gdescriptions.grouping_id
+    WHERE gdescriptions.description MATCH ?
+    ORDER BY relevance ASC
+    LIMIT 5
+    """
+    result = filebase_db.execute_read(
+        query=query,
+        params=(values,),
+        fetch_one=False
+    )
+    for row in result:
+        pprint(dict(row))
+
     return result
 
 
 """
 from app.tools.sqlgroupings import make_new_grouping as mng
+from app.tools.sqlgroupings import match_gdescription as mg
 """

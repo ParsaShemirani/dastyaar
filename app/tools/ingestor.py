@@ -4,7 +4,7 @@ from app.tools.audio_recording import interactive_transcribe
 from pprint import pprint
 import os
 import subprocess
-
+import time
 
 
 def main(file_path, groupings):
@@ -63,8 +63,12 @@ def main(file_path, groupings):
 
 def folder_main():
     folder_path = "/Users/parsashemirani/Main/to_ingest"
+    groupings = [9]
+    for i in range(3):
+        print("CHECK GROUPINGS\n")
+        print(groupings)
 
-    groupings = []
+        time.sleep(1)
 
     for filename in os.listdir(folder_path):
         file_path = os.path.join(folder_path, filename)
@@ -78,7 +82,7 @@ def folder_main():
         )
 
 """
-from app.tools.tester import folder_main as fm
+from app.tools.ingestor import folder_main as fm
 fm()
 """
 
