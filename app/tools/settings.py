@@ -11,3 +11,5 @@ MYSQL_PASSWORD=os.getenv("MYSQL_PASSWORD")
 GOOGLE_MAPS_API_KEY=os.getenv("GOOGLE_MAPS_API_KEY")
 
 FILEBASE_FILE = "/Users/parsashemirani/Main/dastyaar/app/tools/filebase_test.db"
+
+AUDIO_OUTPUT_DIRECTORY = "/Users/parsashemirani/Main/dastyaar/"
