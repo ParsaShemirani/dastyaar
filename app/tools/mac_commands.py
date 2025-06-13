@@ -1,4 +1,4 @@
-from app.tools import sqlqueries
+from app.tools import read_sql_queries
 from app.tools import sqlgroupings
 import os
 import shutil
@@ -13,12 +13,12 @@ def localize_grouping(grouping_id):
     os.makedirs(directory)
 
 
-    id_list = sqlqueries.ids_in_grouping(
+    id_list = read_sql_queries.ids_in_grouping(
         grouping_id=grouping_id
     )
     print(id_list)
     for id in id_list:
-        file_name = sqlqueries.get_file_name_via_id(
+        file_name = read_sql_queries.get_file_name_via_id(
             file_id=id
         )
         source = f"/Users/parsashemirani/Main/revampbase/{file_name}"
