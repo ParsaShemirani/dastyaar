@@ -5,7 +5,6 @@ import shutil
 import re
 from zoneinfo import ZoneInfo
 import subprocess
-
 def generate_sha_hash(file_path):
     sha256_hash = hashlib.sha256()
     with open(file_path, "rb") as f:
@@ -100,25 +99,6 @@ def extract_hash_from_basename(basename):
     if hex_hash:
         return bytes.fromhex(hex_hash)
     return None
-
-def scp_copy(local_path, remote_user, remote_host, remote_path):
-    command = ['scp', local_path, f'{remote_user}@{remote_host}:{remote_path}']
-    result = subprocess.run(command, capture_output=True, text=True)
-    if result.returncode != 0:
-        raise Exception(f"SCP copy did not work {Exception}")
-    
-
-
-def scp(local_path, remote_user, remote_host, remote_path, upload):
-    if upload:
-        command = ['scp', local_path, f'{remote_user}@{remote_host}:{remote_path}']
-    else:
-        command = ['scp', f'{remote_user}@{remote_host}:{remote_path}', local_path]
-    result = subprocess.run(command, capture_output=True, text=True)
-    if result.returncode != 0:
-        raise Exception(f"SCP command did not work {result.stderr.strip()}")
-    return result.stdout
-    
 
 def remove_file(file_path):
     os.remove(file_path)

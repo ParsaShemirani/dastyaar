@@ -52,7 +52,7 @@ def main(file_path, groupings):
     )
     """
     print("SCP Copying file")
-    ff.scp_copy(
+    ff.scp_to_bonyaad(
         local_path=file_object.new_file_path,
         remote_user='parsa',
         remote_host='192.168.1.4',
