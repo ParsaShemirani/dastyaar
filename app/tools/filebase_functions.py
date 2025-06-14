@@ -1,7 +1,7 @@
 from app.tools.sqliteinterface import SQLiteInterface
-from app.tools.settings import FILEBASE_FILE
+from app.tools.settings import FILEBASE_DB_FILE
 
-filebase_db = SQLiteInterface(FILEBASE_FILE)
+filebase_db = SQLiteInterface(FILEBASE_DB_FILE)
 
 def get_version_number_via_hash(hash):
     query = """

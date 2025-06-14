@@ -4,7 +4,7 @@ import threading
 import subprocess
 import os
 from  app.tools import open_ai_transcriber
-from settings import AUDIO_OUTPUT_DIRECTORY
+from app.tools.settings import AUDIO_OUTPUT_DIRECTORY
 
 output_directory = AUDIO_OUTPUT_DIRECTORY
 wav_recording = os.path.join(output_directory, "output.wav")

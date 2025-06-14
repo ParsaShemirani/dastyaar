@@ -19,8 +19,12 @@ BONYAAD_COMPUTER_HOST = '192.168.1.4'
 AUDIO_OUTPUT_DIRECTORY = "/Users/parsashemirani/Main/dastyaar/"
 
 
-
+LOCAL_INGESTED_PATH = "/Users/parsashemirani/Main/ingested/"
+LOCAL_TO_INGEST_PATH = "/Users/parsashemirani/Main/to_ingest/"
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 GOOGLE_MAPS_API_KEY=os.getenv("GOOGLE_MAPS_API_KEY")
+
+
+

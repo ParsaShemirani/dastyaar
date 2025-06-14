@@ -5,6 +5,7 @@ from pprint import pprint
 import os
 import subprocess
 import time
+from app.tools.scpinteract import scp_to_intake
 
 
 def main(file_path, groupings):
@@ -52,11 +53,8 @@ def main(file_path, groupings):
     )
     """
     print("SCP Copying file")
-    ff.scp_to_bonyaad(
-        local_path=file_object.new_file_path,
-        remote_user='parsa',
-        remote_host='192.168.1.4',
-        remote_path='/mnt/wdhd'
+    scp_to_intake(
+        file_path=file_object.new_file_path
     )
     print("SCP copy done")
     ff.copy_file(
@@ -74,7 +72,7 @@ def main(file_path, groupings):
 
 def folder_main():
     folder_path = "/Users/parsashemirani/Main/to_ingest"
-    groupings = []
+    groupings = [12]
     for i in range(3):
         print("CHECK GROUPINGS\n")
         print(groupings)
@@ -101,9 +99,9 @@ fm()
 
 """
 from app.tools.sqliteinterface import SQLiteInterface
-from app.tools.settings import FILEBASE_FILE
+from app.tools.settings import FILEBASE_DB_FILE
 from pprint import pprint
-sqldb = SQLiteInterface(FILEBASE_FILE)
+sqldb = SQLiteInterface(FILEBASE_DB_FILE)
 r = sqldb.execute_read
 w = sqldb.execute_write
 
