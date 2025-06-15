@@ -1,59 +1,90 @@
 from flask import Flask, request, jsonify
-from app.tools.newsqliteinterface import SQLiteInterface
+from app.tools.sqliteinterface import SQLiteInterface
 from app.tools.settings import FILEBASE_DB_FILE
 
-interface = SQLiteInterface(database_path=FILEBASE_DB_FILE)
-
-def bin_to_hex(obj):
-    def convert(d):
-        result = {}
-        for k, v in d.items():
-            result[k] = v.hex() if isinstance(v, (bytes, bytearray)) else v
-        return result
-
+def convert_binary_to_hex(obj):
+    if isinstance(obj, bytes):
+        return {"_type": "hex", "data": obj.hex()}
+    elif isinstance(obj, list):
+        return [convert_binary_to_hex(item) for item in obj]
+    elif isinstance(obj, dict):
+        return {key: convert_binary_to_hex(value) for key, value in obj.items()}
+    else:
+        return obj
+    
+def convert_hex_to_binary(obj):
     if isinstance(obj, dict):
-        return convert(obj)
-    if isinstance(obj, list):
-        return [convert(d) for d in obj]
-
-
+        if obj.get("_type") == "hex" and "data" in obj:
+            return bytes.fromhex(obj["data"])
+        else:
+            return {key: convert_hex_to_binary(value) for key, value in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_hex_to_binary(item) for item in obj]
+    else:
+        return obj
 
 def create_app():
     app = Flask(__name__)
 
-    @app.route("/execute_read", methods=['GET'])
+    @app.route("/execute_read", methods=['POST'])
     def execute_read():
-        parameter_dict = {}
-        parameter_dict['query'] = request.args.get('query')
-        parameter_dict['params'] = request.args.get('params')
-        fetch_one_arg = request.args.get('fetch_one')
-        parameter_dict['fetch_one'] = str(fetch_one_arg).lower() == 'true'
-
-        result = interface.execute_read(
-            **{k: v for k, v in parameter_dict.items() if v is not None}
+        data = dict(request.get_json())
+        data = convert_hex_to_binary(obj=data)
+        db = SQLiteInterface(data['database_path'])
+        
+        result = db.execute_read(
+            query=data['query'],
+            params=data['params'],
+            fetch_one=data['fetch_one']
         )
-        if result is None:
-            return jsonify(result)
-        else:
-            safe_dict = bin_to_hex(result)
-            return jsonify(safe_dict)
+        result = convert_binary_to_hex(obj=result)
+        return jsonify(result)
 
-    @app.route("/execute_write", methods=['POST'])
-    def execute_write():
+
+    @app.route("/jamietest", methods=['POST'])
+    def jamie():
         data = request.get_json()
+        print("DB PATH")
+        print(data.get('database_path'))
+        print("QUERY")
+        print(data.get('query'))
+        print("PARAMS")
+        print(data.get('params'))
+        print("FETCH_ONE")
+        print(data.get('fetch_one'))
+        print("FETCH ONE TYPE")
+        print(type(data.get('fetch_one')))
+        masterman = dict(data)
+        print("SIMPLETON")
+        print(masterman)
+        return {"wickidman": 'thanks'}
 
-        parameter_dict = {}
-        parameter_dict['query'] = data.get('query')
-        parameter_dict['params'] = data.get('params')
-        many_arg = data.get('many')
-        parameter_dict['many'] = str(many_arg).lower() == 'true'
 
-        result = interface.execute_write(
-            **{k: v for k, v in parameter_dict.items() if v is not None}
-        )
 
-        return jsonify({"rows_affected": result})
     return app
+
+
+"""
+import requests
+
+input = {
+    "master": ['masterman', 234]
+}
+
+
+r = requests.post(
+    url="http://127.0.0.1:5321/jamietest",
+    json=input
+)
+"""
+
+
+
+
+
+
+
+
 
 """
 from app.tools.flask_sqliteinterface import create_app
