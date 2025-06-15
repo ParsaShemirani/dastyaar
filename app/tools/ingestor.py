@@ -8,7 +8,7 @@ import time
 from app.tools.scpinteract import scp_to_intake
 
 
-def main(file_path, groupings):
+def main(file_path, groupings, ask_description=True, interactive=True):
     file_object = FileData(file_path=file_path)
     file_object.filld_standard()
 
@@ -18,18 +18,21 @@ def main(file_path, groupings):
     # Display file_dict and open the file
     print("file_dict:")
     pprint(file_object.file_dict)
-    if file_object.extension in ('jpg', 'mp4', 'png', 'txt', 'mov', 'm4a', 'mp3', 'avi'):
-        subprocess.run(['open', file_object.file_path])
+    if interactive is True:
+        if file_object.extension in ('jpg', 'mp4', 'png', 'txt', 'mov', 'm4a', 'mp3', 'avi'):
+            subprocess.run(['open', file_object.file_path])
 
-    if input("Press enter to procede, anything else otherwise.") == "":
-        file_object.insert_file_dict()
+        if input("Press enter to procede, anything else otherwise.") == "":
+            file_object.insert_file_dict()
+        else:
+            exit()
     else:
-        exit()
-
+        file_object.insert_file_dict()
     
     # Description
-    if input("Press enter to record description, anything else otherwise.") == "":
-        file_object.description = interactive_transcribe()
+    if ask_description is True:
+        if input("Press enter to record description, anything else otherwise.") == "":
+            file_object.description = interactive_transcribe()
 
 
     # Location
@@ -46,12 +49,6 @@ def main(file_path, groupings):
     # Rename | Copy | Remove setup
     file_object.rename_file()
 
-    """
-    ff.copy_file(
-        file_path=file_object.new_file_path,
-        dst_dir="/Users/parsashemirani/Main/revampbase"
-    )
-    """
     print("SCP Copying file")
     scp_to_intake(
         file_path=file_object.new_file_path
@@ -72,7 +69,9 @@ def main(file_path, groupings):
 
 def folder_main():
     folder_path = "/Users/parsashemirani/Main/to_ingest"
-    groupings = [12]
+    groupings = [13]
+    ask_description = False
+    interactive = False
     for i in range(3):
         print("CHECK GROUPINGS\n")
         print(groupings)
@@ -87,7 +86,9 @@ def folder_main():
 
         main(
             file_path=file_path,
-            groupings=groupings
+            groupings=groupings,
+            ask_description=ask_description,
+            interactive=interactive
         )
 
 """
