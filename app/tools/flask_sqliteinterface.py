@@ -1,7 +1,10 @@
 from flask import Flask, request, jsonify
+import sqlite3
 from app.tools.sqliteinterface import SQLiteInterface
 from app.tools.settings import FILEBASE_DB_FILE
 
+
+# Converters for bin/hex
 def convert_binary_to_hex(obj):
     if isinstance(obj, bytes):
         return {"_type": "hex", "data": obj.hex()}
@@ -23,6 +26,44 @@ def convert_hex_to_binary(obj):
     else:
         return obj
 
+
+# Database read/write
+def db_execute_read(database_path, query, params=[], fetch_one=False):
+    connection = sqlite3.connect(database_path)
+    connection.row_factory = sqlite3.Row
+    cursor = connection.cursor()
+
+    try:
+        cursor.execute(query, params)
+        if fetch_one:
+            row = cursor.fetchone()
+            return dict(row) if row else None
+        else:
+            rows = cursor.fetchall()
+            return [dict(r) for r in rows]
+    finally:
+        cursor.close()
+        connection.close()
+
+def db_execute_write(database_path, query, params=[], many=False):
+    connection = sqlite3.connect(database_path)
+    connection.row_factory = sqlite3.Row
+    cursor = connection.cursor()
+
+    try:
+        if many:
+            cursor.executemany(query, params)
+        else:
+            cursor.execute(query, params)
+        connection.commit()
+        return cursor.rowcount
+    finally:
+        cursor.close()
+        connection.close()
+
+
+
+# Main app
 def create_app():
     app = Flask(__name__)
 
@@ -30,9 +71,9 @@ def create_app():
     def execute_read():
         data = dict(request.get_json())
         data = convert_hex_to_binary(obj=data)
-        db = SQLiteInterface(data['database_path'])
         
-        result = db.execute_read(
+        result = db_execute_read(
+            database_path=data['database_path'],
             query=data['query'],
             params=data['params'],
             fetch_one=data['fetch_one']
@@ -44,40 +85,19 @@ def create_app():
     def execute_write():
         data = dict(request.get_json())
         data = convert_hex_to_binary(obj=data)
-        db = SQLiteInterface(data['database_path'])
 
-        result = db.execute_write(
+        result = db_execute_write(
+            database_path=data['database_path'],
             query=data['query'],
             params=data['params'],
             many=data['many']
         )
-        print("JAMIE RESULT: \n")
         print(result)
         return jsonify(
             {"affected_rows": result}
         )
     
     return app
-
-    @app.route("/jamietest", methods=['POST'])
-    def jamie():
-        data = request.get_json()
-        print("DB PATH")
-        print(data.get('database_path'))
-        print("QUERY")
-        print(data.get('query'))
-        print("PARAMS")
-        print(data.get('params'))
-        print("FETCH_ONE")
-        print(data.get('fetch_one'))
-        print("FETCH ONE TYPE")
-        print(type(data.get('fetch_one')))
-        masterman = dict(data)
-        print("SIMPLETON")
-        print(masterman)
-        return {"wickidman": 'thanks'}
-
-
 
     
 
