@@ -45,6 +45,21 @@ class clientsql():
         result = convert_hex_to_binary(obj=result)
         return result
     
+    def execute_write(self, query, params=[], many=False):
+        data = {
+            "database_path": self.database_path,
+            "query": query,
+            "params": params,
+            "many": many
+        }
+        data = convert_binary_to_hex(obj=data)
+        result = requests.post(
+            url=f"{hosted_url}execute_write",
+            json=data
+        )
+        result = result.json()
+        affected_rows = result['affected_rows']
+        return affected_rows
 
 
 
@@ -85,4 +100,10 @@ def masterman(file_id):
 """
 from app.tools.sql_client_side import get_file_name_via_id as gf
 from app.tools.sql_client_side import masterman as mm
+"""
+
+"""
+from app.tools.sql_client_side import clientsql
+db = clientsql("/Users/parsashemirani/main/filebase_test.db")
+j = db.execute_write("UPDATE files SET size = 6242219 WHERE hash = ?", params = [bin_hash])
 """

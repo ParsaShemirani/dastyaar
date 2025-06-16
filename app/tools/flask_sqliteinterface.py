@@ -39,7 +39,25 @@ def create_app():
         )
         result = convert_binary_to_hex(obj=result)
         return jsonify(result)
+    
+    @app.route("/execute_write", methods=['POST'])
+    def execute_write():
+        data = dict(request.get_json())
+        data = convert_hex_to_binary(obj=data)
+        db = SQLiteInterface(data['database_path'])
 
+        result = db.execute_write(
+            query=data['query'],
+            params=data['params'],
+            many=data['many']
+        )
+        print("JAMIE RESULT: \n")
+        print(result)
+        return jsonify(
+            {"affected_rows": result}
+        )
+    
+    return app
 
     @app.route("/jamietest", methods=['POST'])
     def jamie():
@@ -61,7 +79,7 @@ def create_app():
 
 
 
-    return app
+    
 
 
 """
