@@ -1,8 +1,5 @@
 from flask import Flask, request, jsonify
 import sqlite3
-from app.tools.sqliteinterface import SQLiteInterface
-from app.tools.settings import FILEBASE_DB_FILE
-
 
 # Converters for bin/hex
 def convert_binary_to_hex(obj):

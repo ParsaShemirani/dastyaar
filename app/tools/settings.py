@@ -7,10 +7,10 @@ testing_mode = True
 
 if testing_mode:
     INTAKE_DRIVE_PATH = "/mnt/wdhd/test_base/"
-    FILEBASE_DB_FILE = "/Users/parsashemirani/Main/filebase_test.db"
+    FILEBASE_DB_FILE = "/home/parsa/sqflaskhost/filebase_test.db"
 else:
     INTAKE_DRIVE_PATH = "/mnt/wdhd/"
-    FILEBASE_DB_FILE = "/Users/parsashemirani/Main/filebase.db"
+    FILEBASE_DB_FILE = "/home/parsa/sqflaskhost/filebase.db"
 
 
 BONYAAD_COMPUTER_USER = 'parsa'

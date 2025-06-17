@@ -1,6 +1,6 @@
 import requests
 from app.tools.settings import FILEBASE_DB_FILE
-hosted_url = 'http://127.0.0.1:5321/'
+hosted_url = 'http://192.168.1.4:8000/'
 
 def convert_binary_to_hex(obj):
     if isinstance(obj, bytes):
@@ -25,7 +25,7 @@ def convert_hex_to_binary(obj):
 
 
 
-class clientsql():
+class SQLiteInterface():
     def __init__(self, database_path):
         self.database_path = database_path
 
@@ -64,46 +64,3 @@ class clientsql():
 
 
 
-jamie_db = clientsql(database_path=FILEBASE_DB_FILE)
-
-def get_file_name_via_id(file_id):
-    query = """
-    SELECT name
-    FROM files
-    WHERE id = ?
-    """
-    result = jamie_db.execute_read(
-        query=query,
-        params=[file_id],
-        fetch_one=True
-    )
-    print(result)
-
-
-def masterman(file_id):
-    query = """
-    SELECT *
-    FROM files
-    WHERE hash = ?
-    """
-    values = [b"\x14]%\xacF\x82\xebn&\xe7J\x1a\xe2\x89\x1d\xd8\x97\x02\xcb..'\xceJ$R[\x00\xe7\xda\n\xe6"]
-    result = jamie_db.execute_read(
-        query=query,
-        params=values
-    )
-
-    print(result)
-
-
-
-
-"""
-from app.tools.sql_client_side import get_file_name_via_id as gf
-from app.tools.sql_client_side import masterman as mm
-"""
-
-"""
-from app.tools.sql_client_side import clientsql
-db = clientsql("/Users/parsashemirani/main/filebase_test.db")
-j = db.execute_write("UPDATE files SET size = 6242219 WHERE hash = ?", params = [bin_hash])
-"""
