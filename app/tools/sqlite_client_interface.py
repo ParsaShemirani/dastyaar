@@ -1,5 +1,5 @@
 import requests
-from app.tools.settings import FILEBASE_DB_FILE
+from pprint import pprint
 hosted_url = 'http://192.168.1.4:8000/'
 
 def convert_binary_to_hex(obj):
@@ -36,7 +36,12 @@ class SQLiteInterface():
             "params": params,
             "fetch_one": fetch_one
         }
+        print("DATA BEF CONV")
+        pprint(data)
+        
         data = convert_binary_to_hex(obj=data)
+        print("DATA AFTER CONV")
+        pprint(data)
         result = requests.post(
             url=f"{hosted_url}execute_read",
             json=data

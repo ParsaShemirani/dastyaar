@@ -6,9 +6,13 @@ load_dotenv()
 testing_mode = True
 
 if testing_mode:
+    TO_INGEST_PATH = '/Users/parsashemirani/Main/to_ingest_test/'
+    INGESTED_PATH = '/Users/parsashemirani/Main/ingested_test/'
     INTAKE_DRIVE_PATH = "/mnt/wdhd/test_base/"
     FILEBASE_DB_FILE = "/home/parsa/sqflaskhost/filebase_test.db"
 else:
+    TO_INGEST_PATH = '/Users/parsashemirani/Main/to_ingest/'
+    INGESTED_PATH = '/Users/parsashemirani/Main/ingested/'
     INTAKE_DRIVE_PATH = "/mnt/wdhd/"
     FILEBASE_DB_FILE = "/home/parsa/sqflaskhost/filebase.db"
 

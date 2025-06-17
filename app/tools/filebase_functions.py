@@ -12,7 +12,7 @@ def get_version_number_via_hash(hash):
     """
     result = filebase_db.execute_read(
          query=query,
-         params=(hash,),
+         params=[hash],
          fetch_one=True
     )
     if result is None:
@@ -28,7 +28,7 @@ def get_file_id_via_hash(hash):
      """
      result = filebase_db.execute_read(
           query=query,
-          params=(hash,),
+          params=[hash],
           fetch_one=True
      )
      if result is None:
@@ -44,7 +44,7 @@ def insert_file(file_dict):
      VALUES 
           ({placeholders})
      """
-     values = tuple(file_dict.values())
+     values = list(file_dict.values())
 
      filebase_db.execute_write(
           query=query,
@@ -59,7 +59,7 @@ def associate_location(file_id, location_id):
      VALUES
      (?,?)
      """
-     values = (file_id, location_id)
+     values = [file_id, location_id]
 
      filebase_db.execute_write(
           query=query,
@@ -74,7 +74,7 @@ def associate_groupings(file_id, grouping_id):
      VALUES
      (?,?)
      """
-     values = (file_id, grouping_id)
+     values = [file_id, grouping_id]
 
      filebase_db.execute_write(
           query=query,
@@ -89,7 +89,7 @@ def associate_description(file_id, description):
      VALUES
      (?,?)
      """
-     values = (file_id, description)
+     values = [file_id, description]
 
      filebase_db.execute_write(
           query=query,
@@ -104,7 +104,7 @@ def associate_previous_id(file_id, previous_id):
      VALUES
      (?,?)
      """
-     values = (file_id,previous_id)
+     values = [file_id,previous_id]
 
      filebase_db.execute_write(
           query=query,
@@ -121,7 +121,7 @@ def make_new_grouping(grouping_name, description):
     VALUES
     (?)
     """
-    values = (grouping_name,)
+    values = [grouping_name]
 
     filebase_db.execute_write(
         query=query,
@@ -142,7 +142,7 @@ def make_new_grouping(grouping_name, description):
     """
     filebase_db.execute_write(
         query=query,
-        params=(grouping_id, description),
+        params=[grouping_id, description],
         many=False
     )
 
@@ -154,7 +154,7 @@ def make_new_grouping(grouping_name, description):
     """
     result = filebase_db.execute_read(
         query=query,
-        params=(grouping_id,),
+        params=[grouping_id],
         fetch_one=False
     )
 

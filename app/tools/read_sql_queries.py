@@ -25,7 +25,7 @@ def match_fdescription(description):
     """
     result = filebase_db.execute_read(
         query=query,
-        params=(values,),
+        params=[values],
         fetch_one=False
     )
     return result
@@ -38,7 +38,7 @@ def ids_in_grouping(grouping_id):
     """
     result = filebase_db.execute_read(
         query=query,
-        params=(grouping_id,),
+        params=[grouping_id],
         fetch_one=False
     )
     file_ids = [row['file_id'] for row in result]
@@ -52,7 +52,7 @@ def get_file_name_via_id(file_id):
     """
     result = filebase_db.execute_read(
         query=query,
-        params=(file_id,),
+        params=[file_id],
         fetch_one=True
     )
     return result['name']
@@ -72,7 +72,7 @@ def match_gdescription(description):
     """
     result = filebase_db.execute_read(
         query=query,
-        params=(values,),
+        params=[values],
         fetch_one=False
     )
 
@@ -86,7 +86,7 @@ def get_grouping_name_via_id(grouping_id):
     """
     result = filebase_db.execute_read(
         query=query,
-        params=(grouping_id,),
+        params=[grouping_id],
         fetch_one=True
     )
     return result['name']
@@ -101,7 +101,7 @@ def get_location_path_via_file_name(file_name):
     """
     result = filebase_db.execute_read(
         query=query,
-        params=(file_name,),
+        params=[file_name],
         fetch_one=True
     )
     return result['path']

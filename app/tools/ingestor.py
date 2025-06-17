@@ -6,7 +6,7 @@ import os
 import subprocess
 import time
 from app.tools.scpinteract import scp_to_intake
-
+from app.tools.settings import TO_INGEST_PATH, INGESTED_PATH
 
 def main(file_path, groupings, ask_description=True, interactive=True):
     file_object = FileData(file_path=file_path)
@@ -56,7 +56,7 @@ def main(file_path, groupings, ask_description=True, interactive=True):
     print("SCP copy done")
     ff.copy_file(
         file_path=file_object.new_file_path,
-        dst_dir="/Users/parsashemirani/Main/ingested"
+        dst_dir=INGESTED_PATH
     )
     file_object.remove_file()
 
@@ -68,10 +68,10 @@ def main(file_path, groupings, ask_description=True, interactive=True):
 
 
 def folder_main():
-    folder_path = "/Users/parsashemirani/Main/to_ingest"
-    groupings = [13]
-    ask_description = False
-    interactive = False
+    folder_path = TO_INGEST_PATH
+    groupings = []
+    ask_description = True
+    interactive = True
     for i in range(3):
         print("CHECK GROUPINGS\n")
         print(groupings)
