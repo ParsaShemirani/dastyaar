@@ -1,6 +1,6 @@
 import requests
 from pprint import pprint
-hosted_url = 'http://192.168.1.4:8000/'
+from app.tools.settings import SQLITE_INTERFACE_API
 
 def convert_binary_to_hex(obj):
     if isinstance(obj, bytes):
@@ -39,7 +39,7 @@ class SQLiteInterface():
         
         data = convert_binary_to_hex(obj=data)
         result = requests.post(
-            url=f"{hosted_url}execute_read",
+            url=f"{SQLITE_INTERFACE_API}/execute_read",
             json=data
         )
         result = result.json()
@@ -55,7 +55,7 @@ class SQLiteInterface():
         }
         data = convert_binary_to_hex(obj=data)
         result = requests.post(
-            url=f"{hosted_url}execute_write",
+            url=f"{SQLITE_INTERFACE_API}/execute_write",
             json=data
         )
         result = result.json()

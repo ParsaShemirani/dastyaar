@@ -1,14 +1,15 @@
 import requests
 import os
-from app.tools.settings import INTAKE_DRIVE_PATH
+from app.tools.settings import FILE_TRANSFER_API
 
-def download_file(file_name, local_directory, location_path=INTAKE_DRIVE_PATH):
+
+def download_file(server_file_path, local_directory):
+    file_name = os.path.basename(server_file_path)
     local_path = os.path.join(local_directory, file_name)
 
-    url = "http://192.168.1.4:5034/download_file"
+    url = f"{FILE_TRANSFER_API}/download_file"
     params = {
-        'file_name': file_name,
-        'location_path': location_path
+        'server_file_path': server_file_path
     }
     response = requests.get(url, params=params, stream=True)
 
@@ -17,16 +18,16 @@ def download_file(file_name, local_directory, location_path=INTAKE_DRIVE_PATH):
             if chunk:
                 f.write(chunk)
 
-def upload_file(file_path, location_path = INTAKE_DRIVE_PATH):
-    file_name = os.path.basename(file_path)
+def upload_file(local_file_path, server_directory):
+    file_name = os.path.basename(local_file_path)
 
-    url = "http://192.168.1.4:5034/upload_file"
-    with open(file_path, 'rb') as f:
+    url = f"{FILE_TRANSFER_API}/upload_file"
+    with open(local_file_path, 'rb') as f:
         files = {
             "file": (file_name, f)
         }
         data = {
-            "location_path": location_path
+            "server_directory": server_directory
         }
         response = requests.post(url=url, files=files, data=data)
 

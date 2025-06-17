@@ -20,8 +20,8 @@ def scp_in(local_path, remote_user, remote_host, remote_path):
 def scp_to_intake(file_path):
     scp_out(
         local_path=file_path,
-        remote_user=settings.BONYAAD_COMPUTER_USER,
-        remote_host=settings.BONYAAD_COMPUTER_HOST,
+        remote_user=settings.SERVER_USER_NAME,
+        remote_host=settings.SERVER_HOST,
         remote_path=settings.INTAKE_DRIVE_PATH
     )
 
@@ -31,8 +31,8 @@ def scp_from_intake(file_name, local_path):
     )
     scp_in(
         local_path=local_path,
-        remote_user=settings.BONYAAD_COMPUTER_USER,
-        remote_host=settings.BONYAAD_COMPUTER_HOST,
+        remote_user=settings.SERVER_USER_NAME,
+        remote_host=settings.SERVER_HOST,
         remote_path=f"{location_path}{file_name}"
     )
 

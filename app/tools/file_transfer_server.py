@@ -5,19 +5,17 @@ app = Flask(__name__)
 
 @app.get("/download_file")
 def download_file():
-    file_name = request.args['file_name']
-    location_path = request.args['location_path']
-    path = os.path.join(location_path, file_name)
+    server_file_path = request.args['server_file_path']
 
-    return send_file(path)
+    return send_file(server_file_path)
 
 @app.post("/upload_file")
 def upload_file():
     f = request.files['file']
-    location_path = request.form['location_path']
-    path = os.path.join(location_path, f.filename)
+    server_directory = request.form['server_directory']
+    server_file_path = os.path.join(server_directory, f.filename)
 
-    with open(path, "wb") as out:
+    with open(server_file_path, "wb") as out:
         for chunk in f.stream:
             out.write(chunk)
     return ""
