@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, send_file
-from app.tools.sqlite_client_interface import SQLiteInterface
+from app.tools.sqlite_interface_client import SQLiteInterface
 from app.tools.settings import FILEBASE_DB_FILE
 
 from pprint import pprint
