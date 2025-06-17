@@ -1,5 +1,6 @@
 from app.tools import file_functions
-from app.tools import filebase_functions
+from app.tools import read_filebase
+from app.tools import write_filebase
 class FileData:
     def __init__(self, file_path:str):
         self.file_path = file_path
@@ -39,12 +40,12 @@ class FileData:
         )
 
     def filld_previous_id(self):
-        self.previous_id = filebase_functions.get_file_id_via_hash(
+        self.previous_id = read_filebase.get_file_id_via_hash(
             hash=self.hash_from_basename
         )
 
     def filld_updated_version_number(self):
-        parent_version = filebase_functions.get_version_number_via_hash(
+        parent_version = read_filebase.get_version_number_via_hash(
             hash=self.hash_from_basename
         )
         self.version_number = parent_version + 1
@@ -113,7 +114,7 @@ class FileData:
 
     # FILEBASE INVOLVEMENT
     def is_unique(self):
-        result = filebase_functions.get_file_id_via_hash(
+        result = read_filebase.get_file_id_via_hash(
             hash=self.hash
         )
         if result is None:
@@ -122,10 +123,10 @@ class FileData:
             return False
         
     def insert_file_dict(self):
-        filebase_functions.insert_file(
+        write_filebase.insert_file(
             file_dict=self.file_dict
         )
-        self.file_id = filebase_functions.get_file_id_via_hash(
+        self.file_id = read_filebase.get_file_id_via_hash(
             hash=self.hash
         )
 
@@ -133,39 +134,39 @@ class FileData:
 
 
     # OTHER TABLES RELATED
-    def associate_groupings(self):
+    def associate_grouping(self):
         if hasattr(self, 'groupings'):
             for grouping in self.groupings:
-                filebase_functions.associate_groupings(
+                write_filebase.associate_grouping(
                     file_id=self.file_id,
                     grouping_id=grouping
                 )
 
     def associate_previous_id(self):
         if hasattr(self, 'previous_id'):
-            filebase_functions.associate_previous_id(
+            write_filebase.associate_previous_id(
                 file_id=self.file_id,
                 previous_id=self.previous_id
             )
     
-    def associate_description(self):
+    def associate_fdescription(self):
         if hasattr(self, 'description'):
-            filebase_functions.associate_description(
+            write_filebase.associate_fdescription(
                 file_id=self.file_id,
                 description=self.description
             )
 
     def associate_location(self):
         if hasattr(self, 'location_id'):
-            filebase_functions.associate_location(
+            write_filebase.associate_location(
                 file_id=self.file_id,
                 location_id=self.location_id
             )
 
     def associate_all(self):
-        self.associate_groupings()
+        self.associate_grouping()
         self.associate_previous_id()
-        self.associate_description()
+        self.associate_fdescription()
         self.associate_location()
 
 

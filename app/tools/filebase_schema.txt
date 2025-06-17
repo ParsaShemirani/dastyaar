@@ -37,7 +37,8 @@ CREATE VIRTUAL TABLE gdescriptions USING fts5(
 
 CREATE TABLE locations (
     id INTEGER PRIMARY KEY,
-    name TEXT
+    name TEXT,
+    path TEXT
 );
 
 CREATE TABLE files_locations (
