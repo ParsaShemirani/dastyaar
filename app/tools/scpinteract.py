@@ -39,7 +39,7 @@ def scp_from_intake(file_name, local_path):
 ################
 
 
-def localize_file(file_id, local_path=settings.LOCAL_INGESTED_PATH):
+def localize_file(file_id, local_path=settings.INGESTED_PATH):
     file_name = read_sql_queries.get_file_name_via_id(
         file_id=file_id
     )
@@ -53,7 +53,7 @@ def localize_grouping(grouping_id):
     grouping_name = read_sql_queries.get_grouping_name_via_id(
         grouping_id=grouping_id
     )
-    directory = f"{settings.LOCAL_INGESTED_PATH}{grouping_name}"
+    directory = f"{settings.INGESTED_PATH}{grouping_name}"
     os.makedirs(directory)
     id_list = read_sql_queries.ids_in_grouping(
         grouping_id=grouping_id

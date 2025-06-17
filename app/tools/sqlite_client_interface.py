@@ -36,12 +36,8 @@ class SQLiteInterface():
             "params": params,
             "fetch_one": fetch_one
         }
-        print("DATA BEF CONV")
-        pprint(data)
         
         data = convert_binary_to_hex(obj=data)
-        print("DATA AFTER CONV")
-        pprint(data)
         result = requests.post(
             url=f"{hosted_url}execute_read",
             json=data
