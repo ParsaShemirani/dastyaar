@@ -1,6 +1,6 @@
 import subprocess
 from app.tools import settings
-from app.tools import read_sql_queries
+from app.tools import read_filebase
 import os
 
 
@@ -26,7 +26,7 @@ def scp_to_intake(file_path):
     )
 
 def scp_from_intake(file_name, local_path):
-    location_path = read_sql_queries.get_location_path_via_file_name(
+    location_path = read_filebase.get_location_path_via_file_name(
         file_name=file_name
     )
     scp_in(
@@ -40,7 +40,7 @@ def scp_from_intake(file_name, local_path):
 
 
 def localize_file(file_id, local_path=settings.INGESTED_PATH):
-    file_name = read_sql_queries.get_file_name_via_id(
+    file_name = read_filebase.get_file_name_via_id(
         file_id=file_id
     )
     scp_from_intake(
@@ -50,12 +50,12 @@ def localize_file(file_id, local_path=settings.INGESTED_PATH):
 
 
 def localize_grouping(grouping_id):
-    grouping_name = read_sql_queries.get_grouping_name_via_id(
+    grouping_name = read_filebase.get_grouping_name_via_id(
         grouping_id=grouping_id
     )
     directory = f"{settings.INGESTED_PATH}{grouping_name}"
     os.makedirs(directory)
-    id_list = read_sql_queries.ids_in_grouping(
+    id_list = read_filebase.ids_in_grouping(
         grouping_id=grouping_id
     )
     for id in id_list:

@@ -3,37 +3,6 @@ from app.tools.settings import FILEBASE_DB_FILE
 
 filebase_db = SQLiteInterface(FILEBASE_DB_FILE)
 
-def get_version_number_via_hash(hash):
-    query = """
-    SELECT 
-        version_number 
-    FROM files 
-    WHERE hash = ? 
-    """
-    result = filebase_db.execute_read(
-         query=query,
-         params=[hash],
-         fetch_one=True
-    )
-    if result is None:
-         return None
-    return result['version_number']
-
-def get_file_id_via_hash(hash):
-     query = """
-     SELECT
-          id
-     FROM files
-     WHERE hash = ?
-     """
-     result = filebase_db.execute_read(
-          query=query,
-          params=[hash],
-          fetch_one=True
-     )
-     if result is None:
-          return None
-     return result['id']
 
 def insert_file(file_dict):
      columns = ', '.join(file_dict.keys())
@@ -67,7 +36,7 @@ def associate_location(file_id, location_id):
           many=False
      )
 
-def associate_groupings(file_id, grouping_id):
+def associate_grouping(file_id, grouping_id):
      query = """
      INSERT INTO files_groupings
      (file_id, grouping_id)
@@ -82,7 +51,7 @@ def associate_groupings(file_id, grouping_id):
           many=False
      )
 
-def associate_description(file_id, description):
+def associate_fdescription(file_id, description):
      query = """
      INSERT INTO fdescriptions
      (file_id, description)
@@ -112,16 +81,14 @@ def associate_previous_id(file_id, previous_id):
           many=False
      )
 
-# Groupings
-
-def make_new_grouping(grouping_name, description):
+def associate_gdescription(grouping_id, description):
     query = """
-    INSERT INTO groupings
-    (name)
+    INSERT INTO gdescriptions
+    (grouping_id, description)
     VALUES
-    (?)
+    (?,?)
     """
-    values = [grouping_name]
+    values = [grouping_id, description]
 
     filebase_db.execute_write(
         query=query,
@@ -129,33 +96,28 @@ def make_new_grouping(grouping_name, description):
         many=False
     )
 
-    id_fetch = filebase_db.execute_read(
-        query="SELECT id FROM groupings ORDER BY id DESC LIMIT 1",
-    )
-    grouping_id = dict(id_fetch[0])['id']
-
+def create_grouping(name):
     query = """
-    INSERT INTO gdescriptions
-    (grouping_id, description)
+    INSERT INTO groupings
+    (name)
     VALUES
-    (?,?)
+    (?)
     """
+    values = [name]
+
     filebase_db.execute_write(
         query=query,
-        params=[grouping_id, description],
+        params=values,
         many=False
     )
 
-    query = """
-    SELECT groupings.id, groupings.name, gdescriptions.description
-    FROM groupings
-    JOIN gdescriptions ON groupings.id = gdescriptions.grouping_id
-    WHERE groupings.id = ?
-    """
-    result = filebase_db.execute_read(
-        query=query,
-        params=[grouping_id],
-        fetch_one=False
-    )
 
-    return result
+
+
+
+
+
+
+
+
+
