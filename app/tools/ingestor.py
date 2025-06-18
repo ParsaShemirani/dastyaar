@@ -5,10 +5,10 @@ from pprint import pprint
 import os
 import subprocess
 import time
-from app.tools.scpinteract import scp_to_intake
-from app.tools.settings import TO_INGEST_PATH, INGESTED_PATH
+from app.tools.settings import TO_INGEST_PATH, INGESTED_PATH, INTAKE_DRIVE_PATH
+from app.tools.file_transfer_client import upload_file
 
-def main(file_path, groupings, ask_description=True, interactive=True):
+def main(file_path, groupings, interactive=True):
     file_object = FileData(file_path=file_path)
     file_object.filld_standard()
 
@@ -26,13 +26,11 @@ def main(file_path, groupings, ask_description=True, interactive=True):
             file_object.insert_file_dict()
         else:
             exit()
+        if input("Press enter to record description, anything else otherwise.") == "":
+            file_object.description = interactive_transcribe()
     else:
         file_object.insert_file_dict()
     
-    # Description
-    if ask_description is True:
-        if input("Press enter to record description, anything else otherwise.") == "":
-            file_object.description = interactive_transcribe()
 
 
     # Location
@@ -49,11 +47,12 @@ def main(file_path, groupings, ask_description=True, interactive=True):
     # Rename | Copy | Remove setup
     file_object.rename_file()
 
-    print("SCP Copying file")
-    scp_to_intake(
-        file_path=file_object.new_file_path
+    print("HTTP Copying file")
+    upload_file(
+        local_file_path=file_object.new_file_path,
+        server_directory=INTAKE_DRIVE_PATH
     )
-    print("SCP copy done")
+    print("HTTP copy done")
     ff.copy_file(
         file_path=file_object.new_file_path,
         dst_dir=INGESTED_PATH
@@ -70,7 +69,6 @@ def main(file_path, groupings, ask_description=True, interactive=True):
 def folder_main():
     folder_path = TO_INGEST_PATH
     groupings = []
-    ask_description = True
     interactive = True
     for i in range(3):
         print("CHECK GROUPINGS\n")
@@ -87,7 +85,6 @@ def folder_main():
         main(
             file_path=file_path,
             groupings=groupings,
-            ask_description=ask_description,
             interactive=interactive
         )
 
@@ -96,18 +93,3 @@ from app.tools.ingestor import folder_main as fm
 fm()
 """
 
-
-
-"""
-from app.tools.sqliteinterface import SQLiteInterface
-from app.tools.settings import FILEBASE_DB_FILE
-from pprint import pprint
-sqldb = SQLiteInterface(FILEBASE_DB_FILE)
-r = sqldb.execute_read
-w = sqldb.execute_write
-
-def o(james):
-    for row in james:
-        print("\nNEWMAN\n")
-        pprint(dict(row))
-"""
