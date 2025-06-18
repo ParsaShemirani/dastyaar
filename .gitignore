@@ -2,7 +2,6 @@ __pycache__/
 *.pyc
 .env
 venv/
-notes.txt
 .claude/
 .DS_Store
 jamiepad.py

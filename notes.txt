@@ -1,0 +1,7 @@
+For database: "Ingested with similar files" option.
+Lets say we have two photos taken a second apart. Instead
+of making a new grouping for both of them, 
+we just give the description to the first one, and tag it
+as "True" as having related items ingested along with it.
+SO then looking at nearby ids can reveal these related files.
+Inbetween giving both a description and making a grouping for the files.
