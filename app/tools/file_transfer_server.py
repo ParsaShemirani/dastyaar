@@ -1,27 +1,27 @@
 from flask import Flask, request, send_file
 import os
 
-app = Flask(__name__)
 
-@app.get("/download_file")
-def download_file():
-    server_file_path = request.args['server_file_path']
+def create_app():
+    app = Flask(__name__)
 
-    return send_file(server_file_path)
+    @app.get("/download_file")
+    def download_file():
+        server_file_path = request.args['server_file_path']
 
-@app.post("/upload_file")
-def upload_file():
-    f = request.files['file']
-    server_directory = request.form['server_directory']
-    server_file_path = os.path.join(server_directory, f.filename)
+        return send_file(server_file_path)
 
-    with open(server_file_path, "wb") as out:
-        for chunk in f.stream:
-            out.write(chunk)
-    return ""
+    @app.post("/upload_file")
+    def upload_file():
+        f = request.files['file']
+        server_directory = request.form['server_directory']
+        server_file_path = os.path.join(server_directory, f.filename)
 
+        with open(server_file_path, "wb") as out:
+            for chunk in f.stream:
+                out.write(chunk)
+        return ""
     
+    return app
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5034)
 
