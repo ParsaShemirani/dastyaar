@@ -156,3 +156,25 @@ def get_last_grouping_id():
         fetch_one=True
     )
     return result['id']
+
+def match_txt_description(description):
+    words = description.strip().split()
+    values = " OR ".join(words)
+    query = """
+    SELECT files.id,
+    fdescriptions.description,
+    bm25(fdescriptions) AS relevance
+    FROM files
+    JOIN fdescriptions
+    ON files.id = fdescriptions.file_id
+    WHERE extension = 'txt'
+    AND fdescriptions.description MATCH ?
+    ORDER BY relevance ASC
+    LIMIT 5
+    """
+    result = filebase_db.execute_read(
+        query=query,
+        params=[values],
+        fetch_one=False
+    )
+    return result
