@@ -6,7 +6,7 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 GOOGLE_MAPS_API_KEY=os.getenv("GOOGLE_MAPS_API_KEY")
 
 # Changing
-testing_mode = True
+testing_mode = False
 
 if testing_mode:
     TO_INGEST_PATH = '/Users/parsashemirani/Main/to_ingest_test/'
