@@ -6,18 +6,18 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 GOOGLE_MAPS_API_KEY=os.getenv("GOOGLE_MAPS_API_KEY")
 
 # Changing
-testing_mode = True
+testing_mode = False
 
 if testing_mode:
     TO_INGEST_PATH = '/Users/parsashemirani/Main/to_ingest_test/'
     INGESTED_PATH = '/Users/parsashemirani/Main/ingested_test/'
     INTAKE_DRIVE_PATH = "/mnt/wdhd/test_base/"
-    FILEBASE_DB_FILE = "/home/parsa/sqliteserver/filebase_test.db"
+    FILEBASE_DB_FILE = "/home/parsa/datafiles/filebase_test.db"
 else:
     TO_INGEST_PATH = '/Users/parsashemirani/Main/to_ingest/'
     INGESTED_PATH = '/Users/parsashemirani/Main/ingested/'
     INTAKE_DRIVE_PATH = "/mnt/wdhd/"
-    FILEBASE_DB_FILE = "/home/parsa/sqliteserver/filebase.db"
+    FILEBASE_DB_FILE = "/home/parsa/datafiles/filebase.db"
 
 
 AUDIO_OUTPUT_DIRECTORY = "/Users/parsashemirani/Main/dastyaar/"
