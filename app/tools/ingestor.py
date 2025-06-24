@@ -68,8 +68,8 @@ def main(file_path, groupings, interactive=True):
 
 def folder_main():
     folder_path = TO_INGEST_PATH
-    groupings = [6]
-    interactive = True
+    groupings = [7]
+    interactive = False
     for i in range(3):
         print("CHECK GROUPINGS\n")
         print(groupings)
