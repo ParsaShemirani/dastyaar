@@ -1,9 +1,10 @@
 from flask import Flask, request, send_file
 import os
-
+from flask_cors import CORS
 
 def create_app():
     app = Flask(__name__)
+    CORS(app)
 
     @app.get("/download_file")
     def download_file():
