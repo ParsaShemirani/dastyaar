@@ -1,1 +1,7 @@
+__pycache__/
+*.pyc
+.env
+venv/
+.claude/
 **/.DS_Store
+jamiepad.py
