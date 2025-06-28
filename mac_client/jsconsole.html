@@ -40,7 +40,7 @@
             const encoder = new TextEncoder();
             const binaryData = encoder.encode(text);
             
-            fetch('http://127.0.0.1:5000/console_push', {
+            fetch('http://192.168.1.4:8321/console_push', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/octet-stream'
@@ -59,7 +59,7 @@
         }
         
         function fetchHistory() {
-            fetch('http://127.0.0.1:5000/console_history_string')
+            fetch('http://192.168.1.4:8321/console_history_string')
             .then(response => response.arrayBuffer())
             .then(buffer => {
                 // Convert binary data back to text

@@ -94,5 +94,5 @@ def console_history_string():
     )
 
 
-app.run(debug=True)
+
 

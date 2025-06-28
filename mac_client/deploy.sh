@@ -26,18 +26,25 @@ pip freeze > "$LOCAL_DIR/requirements.txt" 2>/dev/null
 echo "Creating archive $ARCHIVE_NAME..."
 zip -r "$ARCHIVE_NAME" . -x ".venv/*" > /dev/null 2>&1
 
-# Step 3: Transfer archive to remote server
+# Step 3: Clean remote directory BEFORE transfer
+echo "Cleaning remote directory $REMOTE_DIR..."
+ssh "$REMOTE_USER@$REMOTE_HOST" bash -s <<EOF
+set -euo pipefail
+# Ensure target dir exists
+mkdir -p $REMOTE_DIR
+# Remove everything inside it
+rm -rf $REMOTE_DIR/* 
+EOF
+
+# Step 4: Transfer archive to remote server
 echo "Transferring archive..."
 scp "$ARCHIVE_NAME" "$REMOTE_USER@$REMOTE_HOST:$REMOTE_DIR/" > /dev/null 2>&1
 
-# Step 4: Remote setup
+# Step 5: Remote setup & unpack
 echo "Setting up project on remote server..."
 ssh "$REMOTE_USER@$REMOTE_HOST" bash -s <<EOF
 set -euo pipefail
 cd $REMOTE_DIR
-
-echo "Removing old deployment..."
-rm -rf src requirements.txt venv > /dev/null 2>&1
 
 echo "Unpacking new archive..."
 unzip -o $ARCHIVE_NAME > /dev/null 2>&1
@@ -53,7 +60,7 @@ pip install -r requirements.txt > /dev/null 2>&1
 echo "Deployment complete."
 EOF
 
-# Step 5: Local cleanup
+# Step 6: Local cleanup
 echo "Cleaning up local archive..."
 rm "$LOCAL_DIR/$ARCHIVE_NAME" > /dev/null 2>&1
 

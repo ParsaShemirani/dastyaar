@@ -1,0 +1,16 @@
+Ssh into my computer with "ssh parsa@192.168.1.4"
+
+navigate to ~/dastyaar
+
+run tmux kill-server
+
+open a new tmux window with 'tmux new -s console_server'
+
+run 'source venv/bin/activate'
+
+run 'gunicorn -w 2 -b 0.0.0.0:8321 server.console:app'
+
+do control b d to exit tmux window
+
+exit.
+
