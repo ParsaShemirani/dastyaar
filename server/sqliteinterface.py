@@ -5,7 +5,7 @@ class SQLiteInterface:
     def __init__(self, database_path):
         self.database_path = database_path
 
-    def db_execute_read(self, query, params=[], fetch_one=False):
+    def execute_read(self, query, params=[], fetch_one=False):
         connection = sqlite3.connect(self.database_path)
         connection.row_factory = sqlite3.Row
         cursor = connection.cursor()
@@ -22,7 +22,7 @@ class SQLiteInterface:
             cursor.close()
             connection.close()
 
-    def db_execute_write(self, query, params=[], many=False):
+    def execute_write(self, query, params=[], many=False):
         connection = sqlite3.connect(self.database_path)
         connection.row_factory = sqlite3.Row
         cursor = connection.cursor()

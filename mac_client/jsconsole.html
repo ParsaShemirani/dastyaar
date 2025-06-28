@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basic Form</title>
+    <style>
+        body {
+            background-color: rgb(30, 30, 30);
+            color:tan;
+        }
+        input, textarea {
+            background-color: #222;   /* or rgb(30,30,30) for consistency */
+            color: tan;
+            border: 1px solid tan;
+            padding: 5px;
+        }
+        input::placeholder, textarea::placeholder {
+            color: #bfa76a; /* lighter tan for placeholder */
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <input type="text" id="textInput" placeholder="Enter your text here">
+    <button onclick="sendData()">Send</button>
+    
+    <br><br>
+    
+    <textarea id="consoleHistory" readonly rows="10" cols="50" placeholder="Console history will appear here..."></textarea>
+    <br>
+    <button onclick="fetchHistory()">Refresh History</button>
+
+    <script>
+        function sendData() {
+            const input = document.getElementById('textInput');
+            const text = input.value;
+            
+            // Convert text to binary (Uint8Array)
+            const encoder = new TextEncoder();
+            const binaryData = encoder.encode(text);
+            
+            fetch('http://127.0.0.1:5000/console_push', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/octet-stream'
+                },
+                body: binaryData
+            })
+            .then(response => response.text())
+            .then(data => {
+                console.log('Success:', data);
+                console.log('Data sent successfully!');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                console.log('Error sending data');
+            });
+        }
+        
+        function fetchHistory() {
+            fetch('http://127.0.0.1:5000/console_history_string')
+            .then(response => response.arrayBuffer())
+            .then(buffer => {
+                // Convert binary data back to text
+                const decoder = new TextDecoder('utf-8');
+                const text = decoder.decode(buffer);
+                
+                // Display in textarea
+                document.getElementById('consoleHistory').value = text;
+            })
+            .catch(error => {
+                console.error('Error fetching history:', error);
+                alert('Error fetching console history');
+            });
+        }
+    </script>
+</body>
+</html>
