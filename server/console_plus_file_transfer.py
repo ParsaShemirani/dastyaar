@@ -166,16 +166,16 @@ def upload_chunk():
 @app.post("/assemble_file")
 def assemble_file():
     file_name = request.form['filename']
+    server_directory = request.form['server_directory']
     expected_size = int(request.form['expected_size'])
 
-    folder = os.path.join(TRANSFER_DIR, file_name)
-    completed_dir = os.path.join(TRANSFER_DIR, "completed")
-    os.makedirs(completed_dir, exist_ok=True)
+    chunk_folder = os.path.join(TRANSFER_DIR, file_name)
+    os.makedirs(server_directory, exist_ok=True)
 
     def hex_sort_key(filename):
         return int(filename, 16)
     
-    all_files = os.listdir(folder)
+    all_files = os.listdir(chunk_folder)
 
     chunk_files_list = []
     for f in all_files:
@@ -184,29 +184,29 @@ def assemble_file():
 
     chunk_files = sorted(chunk_files_list, key=hex_sort_key)
 
-    total_size = sum(os.path.getsize(os.path.join(folder, f)) for f in chunk_files)
+    total_size = sum(os.path.getsize(os.path.join(chunk_folder, f)) for f in chunk_files)
     if total_size != expected_size:
         return f"Size mismatch: got {total_size}, expected {expected_size}", 400
 
-    output_path = os.path.join(completed_dir, file_name)
+    output_path = os.path.join(server_directory, file_name)
     with open(output_path, 'wb') as out:
         for chunk_file in chunk_files:
-            chunk_path = os.path.join(folder, chunk_file)
+            chunk_path = os.path.join(chunk_folder, chunk_file)
             with open(chunk_path, 'rb') as cf:
                 out.write(cf.read())
     
-    rmtree(folder)
+    rmtree(chunk_folder)
 
     return "File assembled successfully", 200
 
 """
 Runner script:
-gunicorn -w 2 -b 0.0.0.0:8321 --preload server.console:app
+gunicorn -w 1 -b 0.0.0.0:8321 --preload server.console:app
 
 
 
 Togethermen:
-gunicorn -w 2 -b 0.0.0.0:8321 --preload server.console_plus_file_transfer:app
+gunicorn -w 1 -b 0.0.0.0:8321 --preload server.console_plus_file_transfer:app
 
 NGROK:
 https://2ea6-2601-644-8f00-230-00-d0.ngrok-free.app

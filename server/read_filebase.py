@@ -1,4 +1,4 @@
-from mac_client.sqliteinterface import SQLiteInterface
+from server.sqliteinterface import SQLiteInterface
 
 filebase_db = SQLiteInterface('/home/parsa/serverfiles/filebase_test.db')
 
@@ -177,3 +177,8 @@ def match_txt_description(description):
         fetch_one=False
     )
     return result
+
+
+"""
+from server.read_filebase import get_file_name_via_id as gi
+"""

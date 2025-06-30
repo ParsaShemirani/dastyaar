@@ -1,5 +1,8 @@
 import requests
 import os
+import time
+import threading
+import sys
 
 FILE_TRANSFER_API = "http://192.168.1.4:8321"  # update as needed
 
@@ -18,17 +21,28 @@ def download_file(server_file_path, local_directory):
             if chunk:
                 f.write(chunk)
 
-def upload_file(local_file_path):
+def upload_file(local_file_path, server_directory="/home/parsa/temporary"):
     file_name = os.path.basename(local_file_path)
     file_size = os.path.getsize(local_file_path)
     chunk_size = 10 * 1024 * 1024
 
-    # Step 1: Check last uploaded offset
+    stop_flag = threading.Event()
+    def show_progress():
+        while not stop_flag.is_set():
+            status_resp = requests.get(f"{FILE_TRANSFER_API}/upload_status", params={"filename": file_name})
+            last_offset_hex = status_resp.json().get("last_offset")
+            uploaded = int(last_offset_hex, 16) if last_offset_hex else 0
+            percent = min(100, uploaded * 100 // file_size)
+            sys.stdout.write(f"\rUploading: {percent}% [{uploaded}/{file_size} bytes]")
+            sys.stdout.flush()
+            time.sleep(5)
+    progress_thread = threading.Thread(target=show_progress)
+    progress_thread.start()
+
     status_resp = requests.get(f"{FILE_TRANSFER_API}/upload_status", params={"filename": file_name})
     last_offset_hex = status_resp.json().get("last_offset")
     start_offset = int(last_offset_hex, 16) + chunk_size if last_offset_hex else 0
-    print("GUZ!!!")
-    print(start_offset)
+
     with open(local_file_path, 'rb') as f:
         f.seek(start_offset)
 
@@ -55,21 +69,31 @@ def upload_file(local_file_path):
             f"{FILE_TRANSFER_API}/assemble_file",
             data={
                 "filename": file_name,
+                "server_directory": server_directory,
                 "expected_size": file_size
             }
         )
 
         if response.ok:
-            print("File assembled on server.")
+            print("\nFile assembled on server.")
         else:
-            print("Assembly failed:", response.text)
+            print("\nAssembly failed:", response.text)
 
-    print("Upload completed (or resumed to completion).")
+    stop_flag.set()
+    progress_thread.join()
+
+    print("Upload completed.")
 
 
 
 """
 from mac_client.file_transfer import upload_file as uf
 uf('/Users/parsashemirani/Desktop/guzrecording.mov')
+
+"""
+
+"""
+from mac_client.file_transfer import upload_file as uf
+uf('/Users/parsashemirani/Main/Inbox/HINAEMAIL.eml', '/home/parsa/')
 
 """
