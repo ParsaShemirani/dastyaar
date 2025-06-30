@@ -1,97 +1,66 @@
-from mac_client import console
+import requests
 import os
-import json
-import ast
-import base64
 
-CHUNK_SIZE = 8192
-SERVER_TRANSFER_DIR = '/home/parsa/transfer/'
+FILE_TRANSFER_API = "http://localhost:5000"  # update as needed
 
-def upload_file(file_path):
-    file_name = os.path.basename(file_path)
-    temp_file_dir = os.path.join(SERVER_TRANSFER_DIR, file_name)
-    status_path = os.path.join(temp_file_dir, "status.json")
+def download_file(server_file_path, local_directory):
+    file_name = os.path.basename(server_file_path)
+    local_path = os.path.join(local_directory, file_name)
 
-    binarystatus = console.push_code(f"""\
-import os
-import json
+    url = f"{FILE_TRANSFER_API}/download_file"
+    params = {
+        'server_file_path': server_file_path
+    }
+    response = requests.get(url, params=params, stream=True)
 
-os.makedirs("{temp_file_dir}", exist_ok=True)
+    with open(local_path, "wb") as f:
+        for chunk in response.iter_content(chunk_size=8192):
+            if chunk:
+                f.write(chunk)
 
-if not os.path.exists("{status_path}"):
-    status = {{
-        "file_name": "{file_name}",
-        "received_offsets": [],
-        "total_chunks": None
-    }}
-else:
-    with open("{status_path}", 'r') as f:
-        status = json.load(f)
+def upload_file(local_file_path):
+    file_name = os.path.basename(local_file_path)
+    file_size = os.path.getsize(local_file_path)
+    chunk_size = 10 * 1024 * 1024
 
-print(status)
-""")
-    stringstatus = binarystatus.decode('utf-8')
-    status = ast.literal_eval(stringstatus)
-    received_offsets = set(status['received_offsets'])
+    # Step 1: Check last uploaded offset
+    status_resp = requests.get(f"{FILE_TRANSFER_API}/upload_status", params={"filename": file_name})
+    last_offset_hex = status_resp.json().get("last_offset")
+    start_offset = int(last_offset_hex, 16) + chunk_size if last_offset_hex else 0
 
-    file_size = os.path.getsize(file_path)
-    total_chunks = (file_size + CHUNK_SIZE - 1) // CHUNK_SIZE
+    with open(local_file_path, 'rb') as f:
+        f.seek(start_offset)
 
-    with open(file_path, 'rb') as f:
-        for i in range(total_chunks):
-            offset = i * CHUNK_SIZE
-            if offset in received_offsets:
-                continue
+        offset = start_offset
+        while offset < file_size:
+            chunk_data = f.read(chunk_size)
+            if not chunk_data:
+                break
 
-            f.seek(offset)
-            chunk_data = f.read(CHUNK_SIZE)
-            chunk_name = f"{offset:08x}"
-            chunk_path = os.path.join(temp_file_dir, chunk_name)
+            files = {"chunk": (f"{offset:08X}", chunk_data)}
+            data = {
+                "filename": file_name,
+                "offset": offset,
+            }
 
-            console.push_code(f"""\
-status["total_chunks"] = {total_chunks}
-import base64
-encoded_data = "{base64.b64encode(chunk_data).decode('ascii')}"
-chunk_data = base64.b64decode(encoded_data)
+            response = requests.post(f"{FILE_TRANSFER_API}/upload_chunk", files=files, data=data)
+            if response.status_code != 200:
+                print(f"Upload failed at offset {offset}")
+                break
 
-with open("{chunk_path}", "wb") as chunk_file:
-    chunk_file.write(chunk_data)
+            offset += chunk_size
+        
+        response = requests.post(
+            f"{FILE_TRANSFER_API}/assemble_file",
+            data={
+                "filename": file_name,
+                "expected_size": file_size
+            }
+        )
 
-status['received_offsets'].append({offset})
-with open("{status_path}", 'w') as sf:
-    json.dump(status, sf)
+        if response.ok:
+            print("File assembled on server.")
+        else:
+            print("Assembly failed:", response.text)
 
-""")
-
-
-
-
-
-
-
-
-def james():
-            console.push_code(f"""\
-with open("{chunk_path}", "wb") as chunk_file:
-    chunk_file.write(GOOZ MAN!!!)
-""")
-            
-            console.push_code(f"""
-{chunk_data}
-""")
-            
-            jamesie = f"""this is some random text and then:{chunk_data} that was it"""
-            print("JAMESIE INCOMING!\n\n\n")
-
-            result = console.push_code(f"""\
-import base64
-encoded_data = "{base64.b64encode(chunk_data).decode('ascii')}"
-guzcheh = base64.b64decode(encoded_data)
-""")
-            print(result)
-
-
-"""
-from mac_client.file_transfer import upload_file
-upload_file('/Users/parsashemirani/Main/Inbox/VID_20141228_211947.mp4')
-"""
+    print("Upload completed (or resumed to completion).")
