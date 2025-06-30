@@ -201,14 +201,12 @@ def assemble_file():
 
 """
 Runner script:
-gunicorn -w 1 -b 0.0.0.0:8321 --preload server.console:app
+gunicorn -w 2 -b 0.0.0.0:8321 --preload server.console:app
 
-Other:
-gunicorn -w 1 -b 127.0.0.1:8321 --preload server.console:app
 
 
 Togethermen:
-gunicorn -w 1 -b 127.0.0.1:8321 --preload server.console_plus_file_transfer:app
+gunicorn -w 2 -b 0.0.0.0:8321 --preload server.console_plus_file_transfer:app
 
 NGROK:
 https://2ea6-2601-644-8f00-230-00-d0.ngrok-free.app

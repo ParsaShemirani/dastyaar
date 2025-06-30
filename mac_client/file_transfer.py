@@ -1,7 +1,7 @@
 import requests
 import os
 
-FILE_TRANSFER_API = "https://2ea6-2601-644-8f00-230-00-d0.ngrok-free.app"  # update as needed
+FILE_TRANSFER_API = "http://192.168.1.4:8321"  # update as needed
 
 def download_file(server_file_path, local_directory):
     file_name = os.path.basename(server_file_path)
@@ -27,7 +27,8 @@ def upload_file(local_file_path):
     status_resp = requests.get(f"{FILE_TRANSFER_API}/upload_status", params={"filename": file_name})
     last_offset_hex = status_resp.json().get("last_offset")
     start_offset = int(last_offset_hex, 16) + chunk_size if last_offset_hex else 0
-
+    print("GUZ!!!")
+    print(start_offset)
     with open(local_file_path, 'rb') as f:
         f.seek(start_offset)
 
@@ -69,6 +70,6 @@ def upload_file(local_file_path):
 
 """
 from mac_client.file_transfer import upload_file as uf
-uf('/Users/parsashemirani/Main/Inbox/theguztransfer.txt')
+uf('/Users/parsashemirani/Desktop/guzrecording.mov')
 
 """
