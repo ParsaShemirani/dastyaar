@@ -1,7 +1,7 @@
 import requests
 import os
 
-FILE_TRANSFER_API = "http://localhost:5000"  # update as needed
+FILE_TRANSFER_API = "https://2ea6-2601-644-8f00-230-00-d0.ngrok-free.app"  # update as needed
 
 def download_file(server_file_path, local_directory):
     file_name = os.path.basename(server_file_path)
@@ -64,3 +64,11 @@ def upload_file(local_file_path):
             print("Assembly failed:", response.text)
 
     print("Upload completed (or resumed to completion).")
+
+
+
+"""
+from mac_client.file_transfer import upload_file as uf
+uf('/Users/parsashemirani/Main/Inbox/theguztransfer.txt')
+
+"""

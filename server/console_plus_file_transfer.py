@@ -5,6 +5,7 @@ import os
 from flask import Flask, request, jsonify, Response, send_file
 from flask_cors import CORS
 import gc
+from shutil import rmtree
 
 TRANSFER_DIR = "/home/parsa/transfers"
 
@@ -193,6 +194,8 @@ def assemble_file():
             chunk_path = os.path.join(folder, chunk_file)
             with open(chunk_path, 'rb') as cf:
                 out.write(cf.read())
+    
+    rmtree(folder)
 
     return "File assembled successfully", 200
 
