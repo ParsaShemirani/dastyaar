@@ -38,7 +38,7 @@ def upload_file(local_file_path):
             if not chunk_data:
                 break
 
-            files = {"chunk": (f"{offset:08X}", chunk_data)}
+            files = {"chunk": (f"{offset:016X}", chunk_data)}
             data = {
                 "filename": file_name,
                 "offset": offset,

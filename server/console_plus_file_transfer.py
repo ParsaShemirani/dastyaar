@@ -148,7 +148,7 @@ def upload_chunk():
     file_name = request.form['filename']
     chunk_offset = int(request.form['offset'])
 
-    chunk_hex = f"{chunk_offset:08X}"
+    chunk_hex = f"{chunk_offset:016X}"
     file_folder = os.path.join(TRANSFER_DIR, file_name)
     os.makedirs(file_folder, exist_ok=True)
 
@@ -179,7 +179,7 @@ def assemble_file():
 
     chunk_files_list = []
     for f in all_files:
-        if not f.endswith(".txt") and len(f) == 8:
+        if not f.endswith(".txt") and len(f) == 16:
             chunk_files_list.append(f)
 
     chunk_files = sorted(chunk_files_list, key=hex_sort_key)
