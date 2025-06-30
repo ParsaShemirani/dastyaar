@@ -30,8 +30,11 @@
     <textarea id="consoleHistory" readonly rows="10" cols="50" placeholder="Console history will appear here..."></textarea>
     <br>
     <button onclick="fetchHistory()">Refresh History</button>
+    <button onclick="resetConsole()">Reset Console</button>
 
     <script>
+        const BASE_URL = 'https://2ea6-2601-644-8f00-230-00-d0.ngrok-free.app';
+        
         function sendData() {
             const input = document.getElementById('textInput');
             const text = input.value;
@@ -40,7 +43,7 @@
             const encoder = new TextEncoder();
             const binaryData = encoder.encode(text);
             
-            fetch('http://192.168.1.4:8321/console_push', {
+            fetch(`${BASE_URL}/console_push`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/octet-stream'
@@ -59,7 +62,11 @@
         }
         
         function fetchHistory() {
-            fetch('http://192.168.1.4:8321/console_history_string')
+            fetch(`${BASE_URL}/console_history_string`, {
+                headers: {
+                    'ngrok-skip-browser-warning': 'true'
+                }
+            })
             .then(response => response.arrayBuffer())
             .then(buffer => {
                 // Convert binary data back to text
@@ -72,6 +79,18 @@
             .catch(error => {
                 console.error('Error fetching history:', error);
                 alert('Error fetching console history');
+            });
+        }
+        
+        function resetConsole() {
+            fetch(`${BASE_URL}/reset_console`, {
+                method: 'POST'
+            })
+            .then(() => {
+                console.log('Console reset');
+            })
+            .catch(error => {
+                console.error('Error resetting console:', error);
             });
         }
     </script>

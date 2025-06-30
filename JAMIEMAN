@@ -1,0 +1,12 @@
+
+import sqliteinterface as db
+
+result = db.execute_read(
+    database_path="/Users/parsashemirani/Main/dastyaar/server/filebase_test-2025-06-16.db",
+    query='''
+    SELECT id FROM groupings ORDER BY id DESC LIMIT 1
+    ''',
+    params=[],
+    fetch_one=True
+)
+print(result)
