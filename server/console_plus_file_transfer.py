@@ -204,7 +204,7 @@ def assemble_file():
 
 """
 Runner script:
-gunicorn -w 1 -b 0.0.0.0:8321 --preload server.new_console_plus_file_transfer:app
+gunicorn -w 1 -b 0.0.0.0:8321 --preload server.console_plus_file_transfer:app
 
 
 NGROK:

@@ -41,20 +41,26 @@
             const input = document.getElementById('textInput');
             const text = input.value;
             
-            // Convert text to binary (Uint8Array)
+            // Convert text to base64 (matching new server strategy)
             const encoder = new TextEncoder();
-            const binaryData = encoder.encode(text);
+            const utf8Bytes = encoder.encode(text);
+            const base64String = btoa(String.fromCharCode(...utf8Bytes));
+            const base64Bytes = new TextEncoder().encode(base64String);
             
             fetch(`${BASE_URL}/console_push`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/octet-stream'
                 },
-                body: binaryData
+                body: base64Bytes
             })
-            .then(response => response.text())
-            .then(data => {
-                console.log('Success:', data);
+            .then(response => response.arrayBuffer())
+            .then(buffer => {
+                // Decode base64 response back to text
+                const decoder = new TextDecoder('utf-8');
+                const base64Response = decoder.decode(buffer);
+                const responseText = atob(base64Response);
+                console.log('Success:', responseText);
                 console.log('Data sent successfully!');
             })
             .catch(error => {
@@ -71,9 +77,10 @@
             })
             .then(response => response.arrayBuffer())
             .then(buffer => {
-                // Convert binary data back to text
+                // Decode base64 response back to text (matching new server strategy)
                 const decoder = new TextDecoder('utf-8');
-                const text = decoder.decode(buffer);
+                const base64Response = decoder.decode(buffer);
+                const text = atob(base64Response);
                 
                 // Display in textarea
                 document.getElementById('consoleHistory').value = text;
