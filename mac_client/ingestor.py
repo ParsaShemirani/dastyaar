@@ -42,12 +42,14 @@ print(rfb.get_version_number_via_hash(file_hash))
 
 """
     james = console.push_code(thing)
+    print(james)
+    print(type(james))
     # Make sure not duplicate:
     
 
 """
 from mac_client.ingestor import make_pending as mp
-mp('/Users/parsashemirani/Main/Inbox/VID_20141228_211947.mp4')
+mp('tomatoesaregood-v2-3a13fded334a292487416ec946330b36c04c7198430c0d74afa1aee66fbbd889.txt')
 """
 
 

@@ -2,7 +2,6 @@ import code
 import io
 import contextlib
 import os
-import base64
 from flask import Flask, request, jsonify, Response, send_file
 from flask_cors import CORS
 import gc
@@ -55,6 +54,21 @@ class Console:
                 self.history_string += line + "\n"
 
         return code_output.rstrip('\n')
+    
+    
+def replace_92_110_with_10(lst):
+    i = 0
+    while i < len(lst) - 1:
+        if lst[i] == 92 and lst[i + 1] == 110:
+            lst[i] = 10
+            del lst[i + 1]
+        else:
+            i += 1
+    return lst
+
+
+
+
 
 
 app = Flask(__name__)
@@ -64,42 +78,25 @@ console = Console()
 
 @app.post('/console_push')
 def console_push():
-    b64_input_bytes = request.get_data()
-    
-    b64_input_string = b64_input_bytes.decode('ascii')
-    
-    utf8_code_bytes = base64.b64decode(b64_input_string)
-    
-    code_str = utf8_code_bytes.decode('utf-8')
-    
-    output_str = console.push_code(code_str=code_str)
-    
-    output_utf8_bytes = output_str.encode('utf-8')
-    
-    output_b64_bytes = base64.b64encode(output_utf8_bytes)
-    
-    output_b64_string = output_b64_bytes.decode('ascii')
-    
-    response_data = output_b64_string.encode('ascii')
+    binary_code = request.get_data()
+    binary_array = list(bytearray(binary_code))
+    correct_nl_array = replace_92_110_with_10(lst=binary_array)
+    correct_nl_binary = bytes(correct_nl_array)
+    correct_nl_decoded = correct_nl_binary.decode('utf-8')
+    output_str = console.push_code(code_str=correct_nl_decoded)
+    encoded_output = output_str.encode('utf-8')
 
     return Response(
-        response=response_data,
+        response=encoded_output,
         mimetype='application/octet-stream',
         status=200
     )
 
 @app.get('/console_history_string')
 def console_history_string():
-    history_utf8_bytes = console.history_string.encode('utf-8')
-    
-    history_b64_bytes = base64.b64encode(history_utf8_bytes)
-    
-    history_b64_string = history_b64_bytes.decode('ascii')
-    
-    response_data = history_b64_string.encode('ascii')
-    
+    binary_string = console.history_string.encode('utf-8')
     return Response(
-        response=response_data,
+        response=binary_string,
         mimetype='application/octet-stream',
         status=200
     )
@@ -204,15 +201,18 @@ def assemble_file():
 
 """
 Runner script:
-gunicorn -w 1 -b 0.0.0.0:8321 --preload server.new_console_plus_file_transfer:app
+gunicorn -w 1 -b 0.0.0.0:8321 --preload server.console:app
 
+
+
+Togethermen:
+gunicorn -w 1 -b 0.0.0.0:8321 --preload server.console_plus_file_transfer:app
 
 NGROK:
 https://2ea6-2601-644-8f00-230-00-d0.ngrok-free.app
 
 LAN:
 http://192.168.1.4:8321
-
 KILL ALL GUNICORN:
-pkill -f "gunicorn.*server.new_console_plus_file_transfer:app"
+pkill -f "gunicorn.*server.console:app"
 """
