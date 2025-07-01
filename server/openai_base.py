@@ -14,12 +14,11 @@ def generate_transcription(audio_file_path, **kwargs):
     client = OpenAI(api_key=OPENAI_API_KEY)
 
     with open(audio_file_path, "rb") as audio_file:
-        transcript = client.audio.transcriptions.create(
+        response = client.audio.transcriptions.create(
             file=audio_file,
             **kwargs
         )
-    transcription_text = transcript.text
-    return transcription_text
+    return response
 
 def generate_speech_from_text(output_audio_file_path, **kwargs):
     client = OpenAI(api_key=OPENAI_API_KEY)

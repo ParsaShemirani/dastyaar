@@ -88,7 +88,7 @@ def upload_file(local_file_path, server_directory="/home/parsa/temporary"):
 
 """
 from mac_client.file_transfer import upload_file as uf
-uf('/Users/parsashemirani/Desktop/guzrecording.mov')
+uf('/Users/parsashemirani/Main/Inbox/manymen.m4a')
 
 """
 

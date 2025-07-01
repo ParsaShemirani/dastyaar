@@ -21,6 +21,8 @@ fi
 # Step 1: Generate requirements.txt
 echo "Generating requirements.txt..."
 pip freeze > "$LOCAL_DIR/requirements.txt" 2>/dev/null
+# Remove any line with 'PyAudio'
+sed -i '' '/PyAudio/d' "$LOCAL_DIR/requirements.txt"
 
 # Step 2: Package project into zip, excluding .venv
 echo "Creating archive $ARCHIVE_NAME..."
