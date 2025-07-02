@@ -26,6 +26,19 @@ def upload_file(local_file_path, server_directory="/home/parsa/temporary"):
     file_size = os.path.getsize(local_file_path)
     chunk_size = 10 * 1024 * 1024
 
+    stop_flag = threading.Event()
+    def show_progress():
+        while not stop_flag.is_set():
+            status_resp = requests.get(f"{FILE_TRANSFER_API}/upload_status", params={"filename": file_name})
+            last_offset_hex = status_resp.json().get("last_offset")
+            uploaded = int(last_offset_hex, 16) if last_offset_hex else 0
+            percent = min(100, uploaded * 100 // file_size)
+            sys.stdout.write(f"\rUploading: {percent}% [{uploaded}/{file_size} bytes]")
+            sys.stdout.flush()
+            time.sleep(5)
+    progress_thread = threading.Thread(target=show_progress)
+    progress_thread.start()
+
     status_resp = requests.get(f"{FILE_TRANSFER_API}/upload_status", params={"filename": file_name})
     last_offset_hex = status_resp.json().get("last_offset")
     start_offset = int(last_offset_hex, 16) + chunk_size if last_offset_hex else 0
@@ -61,11 +74,15 @@ def upload_file(local_file_path, server_directory="/home/parsa/temporary"):
             }
         )
 
-        if not response.ok:
+        if response.ok:
+            print("\nFile assembled on server.")
+        else:
             print("\nAssembly failed:", response.text)
 
+    stop_flag.set()
+    progress_thread.join()
 
-    print(f"File uploaded: {local_file_path}")
+    print("Upload completed.")
 
 
 
@@ -79,9 +96,4 @@ uf('/Users/parsashemirani/Main/Inbox/manymen.m4a')
 from mac_client.file_transfer import upload_file as uf
 uf('/Users/parsashemirani/Main/Inbox/HINAEMAIL.eml', '/home/parsa/')
 
-"""
-
-"""
-from mac_client.file_transfer import download_file as df
-df('/home/parsa/serverfiles/filebase_test.db', '/Users/parsashemirani/main/inbox/backups')
 """

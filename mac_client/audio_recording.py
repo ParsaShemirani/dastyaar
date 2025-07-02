@@ -6,8 +6,8 @@ import os
 
 
 output_directory = '/Users/parsashemirani/Main/dastyaar'
-wav_recording = os.path.join(output_directory, "output.wav")
-mp3_converted = os.path.join(output_directory, "output.mp3")
+wav_recording = os.path.join(output_directory, "recorded_output.wav")
+mp3_converted = os.path.join(output_directory, "recorded_output.mp3")
 
 def record(
     chunk = 1024,

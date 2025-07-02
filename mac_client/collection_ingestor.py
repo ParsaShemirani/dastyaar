@@ -51,7 +51,7 @@ result = gfivh({file_hash})
 print(result)
 """)
     if uniqueness != "None":
-        print("File not unique")
+        print(f"File not unique: {file_path}")
         exit()
 
     version_number = int(console.push_code(f"""\
