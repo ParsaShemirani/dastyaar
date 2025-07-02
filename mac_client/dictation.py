@@ -25,6 +25,7 @@ os.remove(file_path)
         print("Transcription: ", transcription)
         choice = input("Press enter to approve, r to record again")
         record_again = False if choice == '' else True
+    os.remove(audio_recording.mp3_converted)
     return transcription
 
 

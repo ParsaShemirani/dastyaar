@@ -95,14 +95,14 @@ def associate_gdescription(grouping_id, description):
         many=False
     )
 
-def create_grouping(name):
+def create_grouping(name, _type_):
     query = """
     INSERT INTO groupings
-    (name)
+    (name, type)
     VALUES
-    (?)
+    (?, ?)
     """
-    values = [name]
+    values = [name, _type_]
 
     filebase_db.execute_write(
         query=query,

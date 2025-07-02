@@ -4,6 +4,8 @@ from datetime import datetime, timezone
 from mac_client import console
 import hashlib
 import shutil
+from mac_client.dictation import dictate
+
 
 def generate_sha_hash(file_path):
     sha256_hash = hashlib.sha256()
@@ -41,13 +43,15 @@ def extract_file_id_and_name(filename):
     
 
 
-def make_pending(file_path):
-    file_hash = generate_sha_hash(file_path=file_path)
+def ingest(file_path):
+    file_dict = {}
+
+    file_dict['hash'] = generate_sha_hash(file_path=file_path)
 
     uniqueness = console.push_code(f"""\
 from server.read_filebase import get_file_id_via_hash as gfivh
 
-result = gfivh({file_hash})
+result = gfivh({file_dict['hash']})
 print(result)
 """)
     if uniqueness != "None":
@@ -69,17 +73,22 @@ else:
 """))
     
     if version_number == 1:
-        timestamp = get_created_time(file_path=file_path)
+        file_dict['ts'] = get_created_time(file_path=file_path)
     else:
-        timestamp = get_modified_time(file_path=file_path)
+        file_dict['ts'] = get_modified_time(file_path=file_path)
 
+
+
+    guzman = console.push_code(f"""\
+james = {file_dict}
+""")
+    exit()
     tempname = console.push_code(f"""\
 from server.write_filebase import insert_file
-insert_file({{"ts": '{timestamp}', "hash": {file_hash}}})
+insert_file({file_dict})
 
 from server.read_filebase import get_file_id_via_hash as gfivh
-file_id = gfivh({file_hash})
-tempsuffix = f"123-_{{file_id}}_-"
+file_id = gfivh({file_dict['hash']})tempsuffix = f"123-_{{file_id}}_-"
 tempname = tempsuffix + basename
 print(tempname)
 """)
@@ -95,32 +104,40 @@ print(tempname)
 
 
 
+def make_collection_plus_pending(collection_path):
+    collection_name = os.path.basename(collection_path)
+
+    collection_description = dictate()
+    collection_id = int(console.push_code(f"""\
+from server.write_filebase import create_grouping
+create_grouping(
+name='{collection_name}',
+_type_='collection'
+
+
+from server.read_filebase import get_last_grouping_id as glgi
+collection_id = gligi()
+print(collection_id)
+
+from server.write_filebase import associate_gdescription as agd
+agd(
+grouping_id = collection_id,
+description = {collection_description}
+)
+"""))
+    return collection_id
+
+
+
 
     
 
 
 
     
-
 """
-from mac_client.ingestor import make_pending as mp
-mp('/Users/parsashemirani/Main/revampbase/tomatoesaregood-v2-3a13fded334a292487416ec946330b36c04c7198430c0d74afa1aee66fbbd889.txt')
-"""
-
-"""
-from mac_client.ingestor import make_pending as mp
-mp('/Users/parsashemirani/Main/Inbox/VID_20141228_211947.mp4')
-"""
-
-
-
-
-
-"""
-123-_567_-planmaster-v3-663c95c506b730e56b535ed1e52975b33c66012e23a978ed749072c1fd2e4c31.txt
-123-_334_-planmaster-v2-e7f6e8198bc0fd3f9741f9b1c035c8719e8a01623c71c3e81237daa9ff5fe11c.txt
-123-_224_-IMG_3979-v2-86af08b512a660bfe5f241fca9ac1545be11fdc7e07041d3e97379c518ce5f83.jpg
-123-_990_-journalbase_recording-v1-1495d1b6ac36d1cc31d311a92b6b668362368ee7d12354a8b230146089d9266d.m4a
+from mac_client.collection_ingestor import ingest
+ingest('/Users/parsashemirani/Main/Inbox/binary_b64_flow_claude.txt')
 """
 
 
