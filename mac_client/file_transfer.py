@@ -65,7 +65,7 @@ def upload_file(local_file_path, server_directory="/home/parsa/temporary"):
             print("\nAssembly failed:", response.text)
 
 
-    print(f"File uploaded: {local_file_path}")
+    return f"File uploaded: {local_file_path}"
 
 
 
@@ -83,5 +83,5 @@ uf('/Users/parsashemirani/Main/Inbox/HINAEMAIL.eml', '/home/parsa/')
 
 """
 from mac_client.file_transfer import download_file as df
-df('/mnt/wdhd/test_base/asdf-v1-d674522dbe2041b6bb5c05317ba578e02ed8a6b195568d3aed9f40295228107f.html', '/Users/parsashemirani/main/inbox')
+df('/mnt/wdhd/test_base/DSC00716-v1-13ff910e8e7003e3ccbd922cd9a0200fd85425ab9094b5bbcc3d4ced9879c748.jpg', '/Users/parsashemirani/main/inbox')
 """
