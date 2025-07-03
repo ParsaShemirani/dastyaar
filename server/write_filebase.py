@@ -110,7 +110,20 @@ def create_grouping(name, _type_):
         many=False
     )
 
+def update_file(file_id, file_dict):
+    set_clause = ', '.join([f"{key} = ?" for key in file_dict.keys()])
+    query = f"""
+    UPDATE files
+    SET {set_clause}
+    WHERE id = ?
+    """
+    values = list(file_dict.values()) + [file_id]
 
+    filebase_db.execute_write(
+        query=query,
+        params=values,
+        many=False
+    )
 
 
 

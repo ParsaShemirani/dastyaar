@@ -73,26 +73,17 @@ else:
     else:
         timestamp = get_modified_time(file_path=file_path)
 
-    tempname = console.push_code(f"""\
+    console.push_code(f"""\
 from server.write_filebase import insert_file
 insert_file({{"ts": '{timestamp}', "hash": {file_hash}}})
 
-from server.read_filebase import get_file_id_via_hash as gfivh
-file_id = gfivh({file_hash})
-tempsuffix = f"123-_{{file_id}}_-"
-tempname = tempsuffix + basename
-print(tempname)
 """)
-    directory_path = os.path.dirname(file_path)
-    new_path = os.path.join(directory_path, tempname)
-    os.rename(file_path, new_path)
-
+    
     destination_folder = "/Users/parsashemirani/Main/test_folders/pending_transfer_test"
-    final_path = os.path.join(destination_folder, tempname)
+    final_path = os.path.join(destination_folder, os.path.basename(file_path))
 
-    shutil.copy2(new_path, final_path)
-    os.remove(new_path)
-
+    shutil.copy2(file_path, final_path)
+    os.remove(file_path)
 
 
 
@@ -104,7 +95,7 @@ print(tempname)
 
 """
 from mac_client.ingestor import make_pending as mp
-mp('/Users/parsashemirani/Main/revampbase/tomatoesaregood-v2-3a13fded334a292487416ec946330b36c04c7198430c0d74afa1aee66fbbd889.txt')
+mp('/Users/parsashemirani/Main/Inbox/asdf-v1-d674522dbe2041b6bb5c05317ba578e02ed8a6b195568d3aed9f40295228107f.html')
 """
 
 """

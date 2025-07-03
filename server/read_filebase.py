@@ -178,6 +178,20 @@ def match_txt_description(description):
     )
     return result
 
+def get_location_path_via_id(location_id):
+    query = """
+    SELECT path
+    FROM locations
+    WHERE id = ?
+    """
+    result = filebase_db.execute_read(
+        query=query,
+        params=[location_id],
+        fetch_one=True
+    )
+    if result is None:
+        return None
+    return result['path']
 
 """
 from server.read_filebase import get_file_name_via_id as gi

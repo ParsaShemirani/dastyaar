@@ -43,7 +43,7 @@ def extract_file_id_and_name(filename):
     
 
 
-def ingest(file_path):
+def ingest(file_path, collection_id):
     file_dict = {}
 
     file_dict['hash'] = generate_sha_hash(file_path=file_path)
@@ -78,67 +78,92 @@ else:
         file_dict['ts'] = get_modified_time(file_path=file_path)
 
 
-
-    guzman = console.push_code(f"""\
-james = {file_dict}
-""")
-    exit()
-    tempname = console.push_code(f"""\
+    console.push_code(f"""\
 from server.write_filebase import insert_file
 insert_file({file_dict})
 
+
 from server.read_filebase import get_file_id_via_hash as gfivh
-file_id = gfivh({file_dict['hash']})tempsuffix = f"123-_{{file_id}}_-"
-tempname = tempsuffix + basename
-print(tempname)
+file_id = gfivh({file_dict['hash']})
+
+
+from server.write_filebase import associate_grouping
+associate_grouping(
+file_id=file_id,
+grouping_id={collection_id}
+)
+
+print(basename)
 """)
-    directory_path = os.path.dirname(file_path)
-    new_path = os.path.join(directory_path, tempname)
-    os.rename(file_path, new_path)
+
 
     destination_folder = "/Users/parsashemirani/Main/test_folders/pending_transfer_test"
-    final_path = os.path.join(destination_folder, tempname)
+    final_path = os.path.join(destination_folder, os.path.basename(file_path))
 
-    shutil.copy2(new_path, final_path)
-    os.remove(new_path)
+    shutil.copy2(file_path, final_path)
+    os.remove(file_path)
+
+
+
+
+
+
 
 
 
 def make_collection_plus_pending(collection_path):
     collection_name = os.path.basename(collection_path)
-
+    print("collection_name: ", collection_name)
+    print("Dictate collection_description:\n")
     collection_description = dictate()
-    collection_id = int(console.push_code(f"""\
+    collection_id = console.push_code(f"""\
 from server.write_filebase import create_grouping
 create_grouping(
 name='{collection_name}',
 _type_='collection'
-
+)
 
 from server.read_filebase import get_last_grouping_id as glgi
-collection_id = gligi()
-print(collection_id)
+collection_id = glgi()
 
 from server.write_filebase import associate_gdescription as agd
 agd(
 grouping_id = collection_id,
-description = {collection_description}
+description = '''{collection_description}'''
 )
-"""))
-    return collection_id
 
 
 
-
+""")
     
+
+    for filename in os.listdir(collection_path):
+        file_path = os.path.join(collection_path, filename)
+        if filename.startswith('.') or not os.path.isfile(file_path):
+            continue
+        print(f"\nProcessing file: {filename}")
+        ingest(
+            file_path=file_path,
+            collection_id=collection_id
+        )
+        console.soft_reset()
+
+
 
 
 
     
 """
 from mac_client.collection_ingestor import ingest
-ingest('/Users/parsashemirani/Main/Inbox/binary_b64_flow_claude.txt')
+ingest('/Users/parsashemirani/Main/Inbox/jamescollection/DSC00716.JPG', 18)
 """
+
+
+"""
+from mac_client.collection_ingestor import make_collection_plus_pending as mcpp
+mcpp('/Users/parsashemirani/Main/Inbox/buzman')
+"""
+
 
 
 """
@@ -146,4 +171,18 @@ from server.sqliteinterface import SQLiteInterface as SQ
 db = SQ("/home/parsa/serverfiles/filebase_test.db")
 r = db.execute_write("DELETE FROM files WHERE id = 209")
 print(r)
+"""
+
+
+
+
+
+"""
+db.execute_read("SELECT * FROM groupings ORDER BY id DESC LIMIT 1")
+"""
+
+"""
+from server.sqliteinterface import SQLiteInterface as SQ
+db = SQ("/home/parsa/serverfiles/filebase_test.db")
+db.execute_write("DELETE FROM groupings WHERE id = 18")
 """

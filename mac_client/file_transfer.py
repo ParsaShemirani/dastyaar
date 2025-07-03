@@ -83,5 +83,5 @@ uf('/Users/parsashemirani/Main/Inbox/HINAEMAIL.eml', '/home/parsa/')
 
 """
 from mac_client.file_transfer import download_file as df
-df('/home/parsa/serverfiles/filebase_test.db', '/Users/parsashemirani/main/inbox/backups')
+df('/mnt/wdhd/test_base/asdf-v1-d674522dbe2041b6bb5c05317ba578e02ed8a6b195568d3aed9f40295228107f.html', '/Users/parsashemirani/main/inbox')
 """
