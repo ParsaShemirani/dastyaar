@@ -20,11 +20,16 @@ def ingest_or_update(file_path):
     file_dict['_name_hash'] = file_functions.extract_hash_from_basename(basename=file_dict['_basename'])
     file_dict['_rootname'] = file_functions.extract_rootname_from_basename(basename=file_dict['_basename'])
 
+
     file_dict['_previous_version'] = read_filebase.get_version_number_via_hash(hash=file_dict['_name_hash'])
-    if file_dict['_previous_version']:
+    if file_dict['hash'] == file_dict['_name_hash']:
+        if file_dict['_previous_version']:
+            file_dict['version_number'] = file_dict['_previous_version']
+    elif file_dict['_previous_version']:
         file_dict['version_number'] = file_dict['_previous_version'] + 1
     else:
         file_dict['version_number'] = 1
+
     
     file_dict['name'] = file_functions.generate_new_filename(
         rootname=file_dict['_rootname'],

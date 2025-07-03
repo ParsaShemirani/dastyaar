@@ -83,5 +83,5 @@ uf('/Users/parsashemirani/Main/Inbox/HINAEMAIL.eml', '/home/parsa/')
 
 """
 from mac_client.file_transfer import download_file as df
-df('/mnt/wdhd/test_base/DSC00716-v1-13ff910e8e7003e3ccbd922cd9a0200fd85425ab9094b5bbcc3d4ced9879c748.jpg', '/Users/parsashemirani/main/inbox')
+df('/mnt/wdhd/test_base/IMG_1409_letter-v2-2950249176d5c04e33f1796b3f2951568711a77785bb10b0a947428b680628c9.jpg', '/Users/parsashemirani/main/inbox')
 """

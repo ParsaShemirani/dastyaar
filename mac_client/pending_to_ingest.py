@@ -13,7 +13,7 @@ def ingest_file(file_path):
     )
     server_temp_path = os.path.join(server_temp_directory, os.path.basename(file_path))
 
-    response = int(console.push_code(f"""\
+    response = console.push_code(f"""\
 file_path = '''{server_temp_path}'''
 
 from server.ingest import ingest_or_update
@@ -25,7 +25,7 @@ if not get_file_id_via_hash(hash=file_dict['hash']):
     print("FAIL")
 
 print(file_dict)
-"""))
+""")
     return response
 
 
@@ -44,4 +44,10 @@ def ingest_pending():
 
     for file_path in file_paths:
         ingest_file(file_path=file_path)
-        console.soft_reset()
+        #console.soft_reset()
+
+
+"""
+from mac_client.pending_to_ingest import ingest_pending
+ingest_pending()
+"""
