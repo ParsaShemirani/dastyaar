@@ -193,6 +193,21 @@ def get_location_path_via_id(location_id):
         return None
     return result['path']
 
+def get_all_via_id(file_id):
+    query = """
+    SELECT *
+    FROM files
+    WHERE id = ?
+    """
+    result = filebase_db.execute_read(
+        query=query,
+        params=[file_id],
+        fetch_one=True
+    )
+    return result[0] if result else None
+
+
+
 """
 from server.read_filebase import get_file_name_via_id as gi
 """
