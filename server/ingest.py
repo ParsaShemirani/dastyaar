@@ -39,7 +39,7 @@ def ingest_or_update_file(file_path):
     )
 
 
-    upsert.upsert_file(file_dict)
+    all_file_dict = upsert.upsert_file(file_dict)
 
 
     if not file_dict['id']:
@@ -63,4 +63,16 @@ def ingest_or_update_file(file_path):
         location_id=1
     )
 
-    return file_dict
+    return all_file_dict
+
+
+
+
+def get_version_number_via_file_path(file_path):
+    basename = file_functions.extract_basename_from_file_path('{file_path}')
+    name_hash = file_functions.extract_hash_from_basename(basename)
+    if name_hash:
+        last_version = read_filebase.get_version_number_via_hash(name_hash)
+        return last_version + 1
+    else:
+        return 1

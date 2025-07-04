@@ -4,7 +4,7 @@ import time
 import threading
 import sys
 
-FILE_TRANSFER_API = "http://192.168.1.4:8321"  # update as needed
+FILE_TRANSFER_API = "http://192.168.1.4:8321"
 
 def download_file(server_file_path, local_directory):
     file_name = os.path.basename(server_file_path)
@@ -21,7 +21,7 @@ def download_file(server_file_path, local_directory):
             if chunk:
                 f.write(chunk)
 
-def upload_file(local_file_path, server_directory="/home/parsa/temporary"):
+def upload_file(local_file_path):
     file_name = os.path.basename(local_file_path)
     file_size = os.path.getsize(local_file_path)
     chunk_size = 10 * 1024 * 1024
@@ -56,7 +56,6 @@ def upload_file(local_file_path, server_directory="/home/parsa/temporary"):
             f"{FILE_TRANSFER_API}/assemble_file",
             data={
                 "filename": file_name,
-                "server_directory": server_directory,
                 "expected_size": file_size
             }
         )

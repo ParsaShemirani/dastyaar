@@ -8,7 +8,8 @@ from flask_cors import CORS
 import gc
 from shutil import rmtree
 
-TRANSFER_DIR = "/home/parsa/transfers"
+UPLOADS_DIR = "/home/parsa/uploads"
+UPLOADED_DIR = "/home/parsa/uploads/uploaded"
 
 class Console:
     def __init__(self):
@@ -135,7 +136,7 @@ def download_file():
 @app.get("/upload_status")
 def upload_status():
     filename = request.args['filename']
-    folder = os.path.join(TRANSFER_DIR, filename)
+    folder = os.path.join(UPLOADS_DIR, filename)
     offset_path = os.path.join(folder, "last_offset.txt")
 
     if not os.path.exists(offset_path):
@@ -152,7 +153,7 @@ def upload_chunk():
     chunk_offset = int(request.form['offset'])
 
     chunk_hex = f"{chunk_offset:016X}"
-    file_folder = os.path.join(TRANSFER_DIR, file_name)
+    file_folder = os.path.join(UPLOADS_DIR, file_name)
     os.makedirs(file_folder, exist_ok=True)
 
     chunk_path = os.path.join(file_folder, chunk_hex)
@@ -169,11 +170,10 @@ def upload_chunk():
 @app.post("/assemble_file")
 def assemble_file():
     file_name = request.form['filename']
-    server_directory = request.form['server_directory']
     expected_size = int(request.form['expected_size'])
 
-    chunk_folder = os.path.join(TRANSFER_DIR, file_name)
-    os.makedirs(server_directory, exist_ok=True)
+    chunk_folder = os.path.join(UPLOADS_DIR, file_name)
+    os.makedirs(UPLOADED_DIR, exist_ok=True)
 
     def hex_sort_key(filename):
         return int(filename, 16)
@@ -191,7 +191,7 @@ def assemble_file():
     if total_size != expected_size:
         return f"Size mismatch: got {total_size}, expected {expected_size}", 400
 
-    output_path = os.path.join(server_directory, file_name)
+    output_path = os.path.join(UPLOADED_DIR, file_name)
     with open(output_path, 'wb') as out:
         for chunk_file in chunk_files:
             chunk_path = os.path.join(chunk_folder, chunk_file)
