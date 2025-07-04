@@ -49,21 +49,6 @@ def associate_fdescription(file_id, description):
           many=False
      )
 
-def associate_previous_id(file_id, previous_id):
-     query = """
-     INSERT INTO previous_ids
-     (file_id, previous_id)
-     VALUES
-     (?,?)
-     """
-     values = [file_id,previous_id]
-
-     filebase_db.execute_write(
-          query=query,
-          params=values,
-          many=False
-     )
-
 def associate_gdescription(grouping_id, description):
     query = """
     INSERT INTO gdescriptions
@@ -88,6 +73,47 @@ def create_grouping(name, _type_):
     """
     values = [name, _type_]
 
+    filebase_db.execute_write(
+        query=query,
+        params=values,
+        many=False
+    )
+
+def insert_file(columns_dict):
+    columns = ', '.join(columns_dict.keys())
+    placeholders = ', '.join(['?'] * len(columns_dict))
+    query = f"""
+    INSERT INTO files 
+         ({columns})
+    VALUES 
+         ({placeholders})
+    """
+    values = list(columns_dict.values())
+    
+    filebase_db.execute_write(
+         query=query,
+         params=values,
+         many=False
+    )
+
+def update_file(file_id, columns_dict):
+    set_clauses = []
+    values = []
+    
+    for key, value in columns_dict.items():
+        set_clauses.append(f"{key} = ?")
+        values.append(value)
+    
+    set_clause = ', '.join(set_clauses)
+    
+    query = f"""
+    UPDATE files
+    SET {set_clause}
+    WHERE id = ?
+    """
+    
+    values.append(file_id)
+    
     filebase_db.execute_write(
         query=query,
         params=values,

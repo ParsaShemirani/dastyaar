@@ -1,8 +1,8 @@
-from server import file_functions, read_filebase, write_filebase
+from server import file_functions, read_filebase, write_filebase, upsert
 import os
 import shutil
 
-def ingest_or_update(file_path):
+def ingest_or_update_file(file_path):
 
     file_dict = {}
 
@@ -41,22 +41,17 @@ def ingest_or_update(file_path):
     file_dict['_id'] = read_filebase.get_file_id_via_hash(hash=file_dict['hash'])
     
 
-    ### CHANGING LOGIC HERE
     if file_dict['_id']:
         file_dict['_ingest_or_update'] = 'update'
-        write_filebase.update_file(
-            file_dict=file_dict,
-            file_id=file_dict['_id']
-        )
     else:
         file_dict['_ingest_or_update'] = 'ingest'
-        write_filebase.insert_file(
-            file_dict=file_dict
-        )
-        file_dict['_id']= read_filebase.get_file_id_via_hash(
+    
+    upsert.upsert_file(file_dict)
+    
+    if not file_dict['_id']:
+        file_dict['_id'] = read_filebase.get_file_id_via_hash(
             hash=file_dict['hash']
         )
-    ### END CHANGE ZONE
     
     new_file_path = file_functions.generate_new_file_path(
         file_path=file_path,

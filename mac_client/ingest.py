@@ -26,12 +26,6 @@ print(file_dict)
     #console.soft_reset()
     return response
 
-def update_file(file_dict):
-    response = console.push_code(f"""\
-from server.write_filebase import update_file
-update_file(file_dict={file_dict})
-""")
-
 
 
 
