@@ -42,7 +42,7 @@ def ingest_or_update_file(file_path):
     all_file_dict = upsert.upsert_file(file_dict)
 
 
-    if not file_dict['id']:
+    if not file_dict.get('id'):
         file_dict['id'] = read_filebase.get_file_id_via_hash(
             hash=file_dict['hash']
         )

@@ -52,7 +52,7 @@ print(result)
     if not file_dict.get('ts'):
         file_dict['version_number'] = int(console.push_code(f"""\
 from server.ingest import get_version_number_via_file_path
-print(get_version_number_via_file_path(file_path={file_path}))
+print(get_version_number_via_file_path(file_path='''{file_path}'''))
     """))
         if file_dict['version_number'] == 1:
             file_dict['ts'] = get_created_time(file_path=file_path)
