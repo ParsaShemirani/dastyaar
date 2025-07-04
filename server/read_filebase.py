@@ -243,10 +243,7 @@ def get_all_via_file_id(file_id):
     )
     
     if fdescription_result:
-        file_dict['fdescription'] = {
-            'id': fdescription_result['id'],
-            'description': fdescription_result['description']
-        }
+        file_dict['fdescription'] = fdescription_result['description']
     else:
         file_dict['fdescription'] = None
     

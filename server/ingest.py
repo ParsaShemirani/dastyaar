@@ -16,40 +16,34 @@ def ingest_or_update_file(file_path):
 
     file_dict['ingested_ts'] = file_functions.get_current_time()
 
-    file_dict['_basename'] = file_functions.extract_basename_from_file_path(file_path=file_path)
-    file_dict['_name_hash'] = file_functions.extract_hash_from_basename(basename=file_dict['_basename'])
-    file_dict['_rootname'] = file_functions.extract_rootname_from_basename(basename=file_dict['_basename'])
+    file_dict['basename'] = file_functions.extract_basename_from_file_path(file_path=file_path)
+    file_dict['name_hash'] = file_functions.extract_hash_from_basename(basename=file_dict['basename'])
+    file_dict['rootname'] = file_functions.extract_rootname_from_basename(basename=file_dict['basename'])
 
 
-    file_dict['_previous_version'] = read_filebase.get_version_number_via_hash(hash=file_dict['_name_hash'])
-    if file_dict['hash'] == file_dict['_name_hash']:
-        if file_dict['_previous_version']:
-            file_dict['version_number'] = file_dict['_previous_version']
-    elif file_dict['_previous_version']:
-        file_dict['version_number'] = file_dict['_previous_version'] + 1
+    file_dict['previous_version'] = read_filebase.get_version_number_via_hash(hash=file_dict['name_hash'])
+    if file_dict['hash'] == file_dict['name_hash']:
+        if file_dict['previous_version']:
+            file_dict['version_number'] = file_dict['previous_version']
+    elif file_dict['previous_version']:
+        file_dict['version_number'] = file_dict['previous_version'] + 1
     else:
         file_dict['version_number'] = 1
 
     
     file_dict['name'] = file_functions.generate_new_filename(
-        rootname=file_dict['_rootname'],
+        rootname=file_dict['rootname'],
         version_number=file_dict['version_number'],
         hash=file_dict['hash'],
         extension=file_dict['extension']
     )
 
-    file_dict['_id'] = read_filebase.get_file_id_via_hash(hash=file_dict['hash'])
-    
 
-    if file_dict['_id']:
-        file_dict['_ingest_or_update'] = 'update'
-    else:
-        file_dict['_ingest_or_update'] = 'ingest'
-    
     upsert.upsert_file(file_dict)
-    
-    if not file_dict['_id']:
-        file_dict['_id'] = read_filebase.get_file_id_via_hash(
+
+
+    if not file_dict['id']:
+        file_dict['id'] = read_filebase.get_file_id_via_hash(
             hash=file_dict['hash']
         )
     
@@ -65,7 +59,7 @@ def ingest_or_update_file(file_path):
     intake_file_path = os.path.join(intake_path, file_dict['name'])
     shutil.move(new_file_path, intake_file_path)
     write_filebase.associate_location(
-        file_id=file_dict['_id'],
+        file_id=file_dict['id'],
         location_id=1
     )
 
