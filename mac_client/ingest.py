@@ -46,8 +46,7 @@ result = get_file_id_via_hash({file_dict['hash']})
 print(result)
 """)
     if uniqueness != "None":
-        print("File not unique")
-        exit()
+        raise ValueError("File not unique")
 
     if not file_dict.get('ts'):
         file_dict['version_number'] = int(console.push_code(f"""\
@@ -77,13 +76,15 @@ def upload_and_ingest_pending_file(file_name):
 
     all_file_dict = console.push_code(f"""\
 import os
+uploaded_dir = '/home/parsa/uploads/uploaded'
 from server.ingest import ingest_or_update_file
-file_path=os.path.join('/home/parsa/uploads/uploaded','''{file_name}''')
+file_path=os.path.join(uploaded_dir, '''{file_name}''')
 all_file_dict = ingest_or_update_file(file_path=file_path)
 
-os.remove(file_path)
+os.remove(os.path.join(uploaded_dir, all_file_dict['name']))
 
 print(all_file_dict)
+
 """)
     #console.soft_reset()
     return all_file_dict

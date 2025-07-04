@@ -3,6 +3,8 @@ import os
 import shutil
 
 def ingest_or_update_file(file_path):
+    if not os.path.exists(file_path):
+        raise FileNotFoundError("File path does not exist")
 
     file_dict = {}
 
@@ -38,7 +40,6 @@ def ingest_or_update_file(file_path):
         extension=file_dict['extension']
     )
 
-
     all_file_dict = upsert.upsert_file(file_dict)
 
 
@@ -57,7 +58,7 @@ def ingest_or_update_file(file_path):
         location_id=1
     )
     intake_file_path = os.path.join(intake_path, file_dict['name'])
-    shutil.move(new_file_path, intake_file_path)
+    shutil.copy(new_file_path, intake_file_path)
     write_filebase.associate_location(
         file_id=file_dict['id'],
         location_id=1
@@ -69,7 +70,7 @@ def ingest_or_update_file(file_path):
 
 
 def get_version_number_via_file_path(file_path):
-    basename = file_functions.extract_basename_from_file_path('{file_path}')
+    basename = file_functions.extract_basename_from_file_path(file_path)
     name_hash = file_functions.extract_hash_from_basename(basename)
     if name_hash:
         last_version = read_filebase.get_version_number_via_hash(name_hash)

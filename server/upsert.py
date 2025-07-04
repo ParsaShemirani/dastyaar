@@ -8,6 +8,12 @@ def upsert_file(file_dict, overwrite=False):
     files_columns = {'name', 'ts', 'ingested_ts', 'version_number', 'extension', 'size', 'hash'}
     filtered_dict = {k: v for k, v in file_dict.items() if k in files_columns}
 
+    file_id = file_dict.get('id')
+    if file_id is None and file_dict.get('hash'):
+        file_id = get_file_id_via_hash(hash=file_dict['hash'])
+        if file_id:
+            file_dict['id'] = file_id
+
     if filtered_dict:
         if file_dict.get('id'):
             file_id = file_dict['id']
