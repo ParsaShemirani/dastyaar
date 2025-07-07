@@ -1,8 +1,8 @@
 import requests
 import base64
 
-console_host = "https://2ea6-2601-644-8f00-230-00-d0.ngrok-free.app"
-
+console_host = "http://192.168.1.4:8321"
+#Local server: http://192.168.1.4:8321
 
 def push_code(code_str):
     utf8_bytes = code_str.encode('utf-8')

@@ -9,11 +9,21 @@ def dictate():
     while record_again == True:
         audio_recording.record()
         audio_recording.convert_to_mp3()
+
         upload_file(
-            local_file_path=audio_recording.mp3_converted,
-            server_directory='/home/parsa/temporary'
+            local_file_path=audio_recording.mp3_converted
         )
+
+        mp3_basename = os.path.basename(audio_recording.mp3_converted)
         transcription = console.push_code(f"""\
+import os
+import shutil
+shutil.move(
+    os.path.join('/home/parsa/uploads/uploaded', '''{mp3_basename}'''),
+    os.path.join('/home/parsa/temporary', '''{mp3_basename}''')
+)
+                                          
+
 from server.openai_general import whisper_transcription as wt
 file_path = '/home/parsa/temporary/recorded_output.mp3'
 transcription = wt(file_path)
