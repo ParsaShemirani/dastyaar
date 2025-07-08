@@ -1,9 +1,9 @@
 from server.read_filebase import get_all_via_file_id, get_file_id_via_hash
 from server.write_filebase import insert_file, update_file, associate_fdescription, associate_grouping, associate_location
 
+# Upsert: Only positivity, no deleting or changing values via this module.
 
-
-def upsert_file(file_dict, overwrite=False):
+def upsert_file(file_dict):
     # Files table processing
     files_columns = {'name', 'ts', 'ingested_ts', 'version_number', 'extension', 'size', 'hash'}
     filtered_dict = {k: v for k, v in file_dict.items() if k in files_columns}
@@ -23,12 +23,9 @@ def upsert_file(file_dict, overwrite=False):
                 raise ValueError(f"No record found with id: {file_id}")
                 
             columns_to_update = {}
-            if overwrite:
-                columns_to_update = filtered_dict
-            else:
-                for key, value in filtered_dict.items():
-                    if key not in all_file_dict or all_file_dict[key] is None:
-                        columns_to_update[key] = value
+            for key, value in filtered_dict.items():
+                if key not in all_file_dict or all_file_dict[key] is None:
+                    columns_to_update[key] = value
 
             if columns_to_update:
                 update_file(file_id, columns_to_update)

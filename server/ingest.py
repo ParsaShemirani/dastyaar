@@ -2,7 +2,7 @@ from server import file_functions, read_filebase, write_filebase, upsert
 import os
 import shutil
 
-def ingest_or_update_file(file_path):
+def ingest_file(file_path):
     if not os.path.exists(file_path):
         raise FileNotFoundError("File path does not exist")
 
