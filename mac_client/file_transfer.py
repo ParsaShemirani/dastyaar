@@ -21,7 +21,7 @@ def download_file(server_file_path, local_directory):
             if chunk:
                 f.write(chunk)
 
-def upload_file(local_file_path):
+def upload_file(local_file_path, server_directory):
     file_name = os.path.basename(local_file_path)
     file_size = os.path.getsize(local_file_path)
     chunk_size = 10 * 1024 * 1024
@@ -46,9 +46,6 @@ def upload_file(local_file_path):
             }
 
             response = requests.post(f"{FILE_TRANSFER_API}/upload_chunk", files=files, data=data)
-            if response.status_code != 200:
-                print(f"Upload failed at offset {offset}")
-                break
 
             offset += chunk_size
         
@@ -56,13 +53,10 @@ def upload_file(local_file_path):
             f"{FILE_TRANSFER_API}/assemble_file",
             data={
                 "filename": file_name,
+                "server_directory": server_directory,
                 "expected_size": file_size
             }
         )
-
-        if not response.ok:
-            print("\nAssembly failed:", response.text)
-
 
     return f"File uploaded: {local_file_path}"
 

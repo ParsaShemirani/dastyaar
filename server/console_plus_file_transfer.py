@@ -9,7 +9,6 @@ import gc
 from shutil import rmtree
 
 UPLOADS_DIR = "/home/parsa/uploads"
-UPLOADED_DIR = "/home/parsa/uploads/uploaded"
 
 class Console:
     def __init__(self):
@@ -170,10 +169,11 @@ def upload_chunk():
 @app.post("/assemble_file")
 def assemble_file():
     file_name = request.form['filename']
+    server_directory = request.form['server_directory']
     expected_size = int(request.form['expected_size'])
 
     chunk_folder = os.path.join(UPLOADS_DIR, file_name)
-    os.makedirs(UPLOADED_DIR, exist_ok=True)
+    os.makedirs(server_directory, exist_ok=True)
 
     def hex_sort_key(filename):
         return int(filename, 16)
@@ -191,7 +191,7 @@ def assemble_file():
     if total_size != expected_size:
         return f"Size mismatch: got {total_size}, expected {expected_size}", 400
 
-    output_path = os.path.join(UPLOADED_DIR, file_name)
+    output_path = os.path.join(server_directory, file_name)
     with open(output_path, 'wb') as out:
         for chunk_file in chunk_files:
             chunk_path = os.path.join(chunk_folder, chunk_file)
