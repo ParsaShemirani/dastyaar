@@ -46,6 +46,22 @@ def generate_image(output_image_file_path, **kwargs):
 
 
 
+"""
+from server.openai_base import generate_response as gr
+    
+r = gr(
+    instructions="Generate a roughly 6 thousand word response for the user which gives guidance and explanation on the topics he seeks information on.",
+    model="gpt-4.1",
+    temperature=0.2,
+    max_output_tokens=30000,
+    input=referando
+)
+
+"""
+
+
+
+
 
 
 """

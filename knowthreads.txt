@@ -1,0 +1,26 @@
+The things that have been limiting my computer knowledge recently all have to do with
+how processes and threads work, how programs are run on my computer, and related
+concepts. I started programming 4 months ago, and before that, I was accustomed
+to the 'click browser' or 'click file' and the browser opens, and if I want
+to stop it, I click the 'x' button on the browser. I can see which apps
+are 'running' by seeing what is in my macos dock. But I have now setup
+an ubuntu server in my house with command line interface, and learning more
+about the mechanics of computers. When I code with VS Code on my mac,
+it also displays a play button above my code which I write in python,
+and clicking it makes it 'run' and I see the results in the console.
+But all of this hides the true processes which are happening in the computer.
+I typed 'htop' on my ubuntu server, and I was so confused at what I was seeing.
+The difference between processes and threads is hard to understand,
+and gets even more confusing when mixed up with the defenitions like
+CPU cores and threads which seem to be hardware elements. After hours of
+reading, I still bearly understand CPU cores, threads, then processes,
+threads, and so on, and then htop, the processes list, process states.
+Then we move into concepts like syncronous, async programming, and then
+in python, we have modules like asyncio, threading, multiprocessing, which
+I think all relate to these concepts and I have a hard time getting.
+Phrases like 'javascript is single threadded' are uncomprehendable to me.
+And I want to understand the mechanics of what is going on, how processes run on my
+computer. I am also interested in using docker to containerize my workflow.
+But this lack of knowledge in this area is really hindering me to start.
+I cant see how the container would be 'run' because I really dont know
+how something is run on a computer at the more fundemental level.
