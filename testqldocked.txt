@@ -1,0 +1,22 @@
+docker run -d \
+  --name my-postgres \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=password \
+  -e POSTGRES_DB=testdb \
+  -p 8789:5432 \
+  -v /Users/parsashemirani/Main/Inbox/testqlfolder:/var/lib/postgresql/data \
+  postgres:17.5-alpine3.22
+
+
+
+
+
+docker run -it \
+  --name myubuntu \
+  --mount type=bind,source=/Users/parsashemirani/Main/Inbox/titansshowdown/zv,target=/serverfiles \
+  ubuntu:latest
+
+
+
+
+psql -U postgres -d testdb
