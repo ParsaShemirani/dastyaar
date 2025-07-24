@@ -68,3 +68,4 @@ dist/
 # lock files (optional, but sometimes ignored)
 Pipfile.lock
 poetry.lock
+.DS_Store

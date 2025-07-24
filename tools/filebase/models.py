@@ -6,9 +6,13 @@ from datetime import datetime
 from sqlalchemy import (
     String, Integer, BigInteger, DateTime, Text, ForeignKey, Column
 )
+
+from sqlalchemy.dialects.postgresql import TSVECTOR
+
 from sqlalchemy.orm import (
     DeclarativeBase, Mapped, mapped_column, relationship
 )
+from pgvector.sqlalchemy import Vector
 
 
 # --- Base Class ---
@@ -46,6 +50,8 @@ class File(Base):
     size: Mapped[int] = mapped_column(BigInteger, nullable=False)
     sha256_hash: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    description_tsv: Mapped[Optional[str]] = mapped_column(TSVECTOR, nullable=True)
+    description_embedding: Mapped[Optional[list[float]]] = mapped_column(Vector(1536), nullable=True)
 
     # Relationships
     groupings: Mapped[List[Grouping]] = relationship(
@@ -58,6 +64,10 @@ class File(Base):
         secondary=files_storage_devices,
         back_populates="files",
     )
+
+    def __repr__(self) -> str:
+        return (f"File(id={self.id!r}, name={self.name!r}, size={self.size!r})")
+
 
 # --- Grouping Model ---
 class Grouping(Base):
@@ -75,6 +85,9 @@ class Grouping(Base):
         back_populates="groupings",
     )
 
+    def __repr__(self) -> str:
+        return f"Grouping(id={self.id!r}, name={self.name!r}, type={self.type!r})"
+
 # --- Storage Device Model ---
 class StorageDevice(Base):
     __tablename__ = "storage_devices"
@@ -89,3 +102,9 @@ class StorageDevice(Base):
         secondary=files_storage_devices,
         back_populates="storage_devices",
     )
+
+    def __repr__(self) -> str:
+        return f"StorageDevice(id={self.id!r}, name={self.name!r}, capacity={self.capacity!r})"
+
+
+
