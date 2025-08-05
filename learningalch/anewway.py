@@ -66,4 +66,3 @@ Session = sessionmaker(engine)
 
 moneyman = File(name='tony', monsterman=1231)
 
-moneyman.timidrel.

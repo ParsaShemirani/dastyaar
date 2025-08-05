@@ -1,9 +1,12 @@
+from __future__ import annotations
+
+
 from datetime import datetime
 
 
 
 from sqlalchemy import ForeignKey, Integer, BigInteger, String, CHAR,  Text, DateTime
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import JSONB
 
 class Base(DeclarativeBase):
@@ -16,10 +19,53 @@ class Node(Base):
     type: Mapped[str] = mapped_column(String(30))
     created_ts: Mapped[datetime] = mapped_column(DateTime)
 
+
+    outgoing_relationships: Mapped[list[Relationship]] = relationship(
+        "Relationship",
+        foreign_keys="Relationship.source_id",
+        back_populates="source_node",
+    )
+
+    incoming_relationships: Mapped[list[Relationship]] = relationship(
+        "Relationship",
+        foreign_keys="Relationship.target_id",
+        back_populates="target_node"
+    )
+
+
+
     __mapper_args__ = {
         "polymorphic_identity": "node",
         "polymorphic_on": "type"
     }
+
+
+class Relationship(Base):
+    __tablename__ = "relationships"
+
+    source_id: Mapped[int] = mapped_column(ForeignKey("nodes.id"), primary_key=True)
+    target_id: Mapped[int] = mapped_column(ForeignKey("nodes.id"), primary_key=True)
+    type: Mapped[str]= mapped_column(String(50), primary_key=True)
+    created_ts: Mapped[datetime] = mapped_column(DateTime)
+    specific_metadata: Mapped[dict] = mapped_column(JSONB)
+
+    source_node: Mapped[Node] = relationship(
+        "Node",
+        foreign_keys=[source_id],
+        back_populates="outgoing_relationships"
+    )
+
+    target_node = relationship(
+        "Node",
+        foreign_keys=[target_id],
+        back_populates="incoming_relationships"
+    )
+
+
+
+
+
+
 
 
 
@@ -61,11 +107,3 @@ class Collection(Node):
         "polymorphic_identity": "collection"
     }
 
-class Relationship(Base):
-    __tablename__ = "relationships"
-
-    from_id: Mapped[int] = mapped_column(ForeignKey("nodes.id"), primary_key=True)
-    to_id: Mapped[int] = mapped_column(ForeignKey("nodes.id"), primary_key=True)
-    type: Mapped[str]= mapped_column(String(50))
-    created_ts: Mapped[datetime] = mapped_column(DateTime)
-    specific_metadata: Mapped[dict] = mapped_column(JSONB)
