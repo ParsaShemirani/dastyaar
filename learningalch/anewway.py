@@ -59,10 +59,13 @@ from sqlalchemy import delete
 stmt = delete(File).where(File.monsterman == 2134123)
 
 
-from sqlalchemy.orm import sessionmaker
 
-Session = sessionmaker(engine)
+
+
+from sqlalchemy.orm import Session
 
 
 moneyman = File(name='tony', monsterman=1231)
 
+with Session() as session:
+    session.add
