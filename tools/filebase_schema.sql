@@ -4,6 +4,14 @@ CREATE TABLE nodes (
     created_ts TIMESTAMP
 );
 
+CREATE TABLE edges (
+    source_id BIGINT PRIMARY KEY REFERENCES nodes(id),
+    target_id BIGINT PRIMARY KEY REFERENCES nodes(id),
+    type VARCHAR(50) PRIMARY KEY,
+    created_ts TIMESTAMP,
+    specific_metadata JSONB
+);
+
 CREATE TABLE files (
     id BIGINT PRIMARY KEY REFERENCES nodes(id),
     root_name VARCHAR(160),
@@ -11,10 +19,11 @@ CREATE TABLE files (
     hash CHAR(64),
     extension VARCHAR(16),
     size BIGINT,
-    created_ts TIMESTAMP,
+    ctime TIMESTAMP,
     specific_metadata JSONB,
     description TEXT
 );
+
 
 CREATE TABLE collections (
     id BIGINT PRIMARY KEY REFERENCES nodes(id),
@@ -28,10 +37,3 @@ CREATE TABLE storage_devices (
     size BIGINT
 );
 
-CREATE TABLE relationships (
-    source_id BIGINT REFERENCES nodes(id),
-    target_id BIGINT REFERENCES nodes(id),
-    type VARCHAR(50),
-    created_ts TIMESTAMP,
-    specific_metadata JSONB
-);

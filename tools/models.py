@@ -39,7 +39,6 @@ class Node(Base):
         back_populates="source_node",
         init=False
     )
-
     incoming_relationships: Mapped[list[Edge]] = relationship(
         "Edge",
         foreign_keys="Edge.target_id",
@@ -56,26 +55,25 @@ class Node(Base):
 class Edge(Base):
     __tablename__ = "edges"
 
-    source_id: Mapped[int] = mapped_column(ForeignKey("nodes.id"), primary_key=True)
-    target_id: Mapped[int] = mapped_column(ForeignKey("nodes.id"), primary_key=True)
+    source_id: Mapped[int] = mapped_column(ForeignKey("nodes.id"), primary_key=True, init=False)
+    target_id: Mapped[int] = mapped_column(ForeignKey("nodes.id"), primary_key=True, init=False)
     type: Mapped[str]= mapped_column(String(50), primary_key=True)
-    specific_metadata: Mapped[dict[str, Any] | None] = mapped_column(JSONB, default=None)
-    created_ts: Mapped[datetime] = mapped_column(DateTime, default=datetime.now(timezone.utc), init=False)
 
     # Node relationships
     source_node: Mapped[Node] = relationship(
         "Node",
         foreign_keys=[source_id],
         back_populates="outgoing_relationships",
-        init=False
     )
-
     target_node: Mapped[Node] = relationship(
         "Node",
         foreign_keys=[target_id],
         back_populates="incoming_relationships",
-        init=False
     )
+
+    # Nullable / Defaults
+    specific_metadata: Mapped[dict[str, Any] | None] = mapped_column(JSONB, default=None)
+    created_ts: Mapped[datetime] = mapped_column(DateTime, default=datetime.now(timezone.utc), init=False)
 
 
 class File(Node):
