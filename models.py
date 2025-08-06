@@ -14,6 +14,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import (
     DeclarativeBase,
+    MappedAsDataclass,
     Mapped,
     mapped_column,
     relationship
@@ -21,27 +22,29 @@ from sqlalchemy.orm import (
 from sqlalchemy.dialects.postgresql import JSONB
 
 
-class Base(DeclarativeBase):
+class Base(MappedAsDataclass, DeclarativeBase):
     pass
 
 class Node(Base):
     __tablename__ = "nodes"
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
-    type: Mapped[str] = mapped_column(String(30))
-    created_ts: Mapped[datetime] = mapped_column(DateTime, insert_default=datetime.now(timezone.utc), default=None)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True, init=False)
+    type: Mapped[str] = mapped_column(String(30), init=False)
+    created_ts: Mapped[datetime] = mapped_column(DateTime, default=datetime.now(timezone.utc), init=False)
 
     # Edge relationships
     outgoing_relationships: Mapped[list[Edge]] = relationship(
         "Edge",
         foreign_keys="Edge.source_id",
         back_populates="source_node",
+        init=False
     )
 
     incoming_relationships: Mapped[list[Edge]] = relationship(
         "Edge",
         foreign_keys="Edge.target_id",
-        back_populates="target_node"
+        back_populates="target_node",
+        init=False
     )
 
     # Joined table inheritance
@@ -56,35 +59,37 @@ class Edge(Base):
     source_id: Mapped[int] = mapped_column(ForeignKey("nodes.id"), primary_key=True)
     target_id: Mapped[int] = mapped_column(ForeignKey("nodes.id"), primary_key=True)
     type: Mapped[str]= mapped_column(String(50), primary_key=True)
-    specific_metadata: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
-    created_ts: Mapped[datetime] = mapped_column(DateTime, insert_default=datetime.now(timezone.utc), default=None)
-
+    specific_metadata: Mapped[dict[str, Any] | None] = mapped_column(JSONB, default=None)
+    created_ts: Mapped[datetime] = mapped_column(DateTime, default=datetime.now(timezone.utc), init=False)
 
     # Node relationships
     source_node: Mapped[Node] = relationship(
         "Node",
         foreign_keys=[source_id],
-        back_populates="outgoing_relationships"
+        back_populates="outgoing_relationships",
+        init=False
     )
 
-    target_node = relationship(
+    target_node: Mapped[Node] = relationship(
         "Node",
         foreign_keys=[target_id],
-        back_populates="incoming_relationships"
+        back_populates="incoming_relationships",
+        init=False
     )
 
-    
+
 class File(Node):
     __tablename__ = "files"
-    id: Mapped[int] = mapped_column(ForeignKey("nodes.id"), primary_key=True)
+
+    id: Mapped[int] = mapped_column(ForeignKey("nodes.id"), primary_key=True, init=False)
     root_name: Mapped[str] = mapped_column(String(160))
     version_number: Mapped[int] = mapped_column(Integer)
     hash: Mapped[str] = mapped_column(CHAR(64))
     extension: Mapped[str] = mapped_column(String(16))
     size: Mapped[int] = mapped_column(BigInteger)
-    ctime: Mapped[datetime | None] = mapped_column(DateTime)
-    specific_metadata: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
-    description: Mapped[str | None] = mapped_column(Text)
+    ctime: Mapped[datetime | None] = mapped_column(DateTime, default=None)
+    specific_metadata: Mapped[dict[str, Any] | None] = mapped_column(JSONB, default=None)
+    description: Mapped[str | None] = mapped_column(Text, default=None)
 
     __mapper_args__ = {
         "polymorphic_identity": "file"
@@ -93,7 +98,7 @@ class File(Node):
 class StorageDevice(Node):
     __tablename__ = "storage_devices"
 
-    id: Mapped[int] = mapped_column(ForeignKey("nodes.id"), primary_key=True)
+    id: Mapped[int] = mapped_column(ForeignKey("nodes.id"), primary_key=True, init=False)
     name: Mapped[str] = mapped_column(String(160))
     size: Mapped[int] = mapped_column(BigInteger)
 
@@ -104,9 +109,9 @@ class StorageDevice(Node):
 class Collection(Node):
     __tablename__ = "collections"
 
-    id: Mapped[int] = mapped_column(ForeignKey("nodes.id"), primary_key=True)
+    id: Mapped[int] = mapped_column(ForeignKey("nodes.id"), primary_key=True, init=False)
     name: Mapped[str] = mapped_column(String(160))
-    description: Mapped[str | None] = mapped_column(Text)
+    description: Mapped[str | None] = mapped_column(Text, default=None)
 
     __mapper_args__ = {
         "polymorphic_identity": "collection"
