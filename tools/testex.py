@@ -15,7 +15,7 @@ url_object = URL.create(
 
 engine = create_engine(url_object, echo=True)
 
-Session = sessionmaker(engine)
+Session = sessionmaker(bind=engine)
 ##########
 
 """
