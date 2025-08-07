@@ -1,3 +1,3 @@
 Hello this is dastyaar
 
-![Dastyaar Logo](bestcurrentlylogo1_compressed.png)
+![Dastyaar Logo](small_compressed_dy_logo.png)
