@@ -3,8 +3,7 @@ from sqlalchemy.orm import sessionmaker
 
 
 url_object = URL.create(
-    drivername="postgresql+psycopg",
-    username="postgres",
+    drivername="postgresql+psycopg", username="postgres",
     password="marioMaster65!",
     host="localhost",
     port=8432,
@@ -14,3 +13,7 @@ url_object = URL.create(
 engine = create_engine(url_object, echo=True)
 
 Session = sessionmaker(bind=engine)
+
+session = Session()
+
+session.bulk_save_objects

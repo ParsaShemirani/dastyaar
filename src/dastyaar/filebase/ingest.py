@@ -2,19 +2,20 @@ import re
 import shutil
 from pathlib import Path
 from hashlib import file_digest
-from datetime import datetime, timezone
 
 from sqlalchemy import select
 
-from settings import intake_path
-from tools.db import Session
-from tools.models import Edge, File, StorageDevice
+from dastyaar.settings import intake_path
+from dastyaar.filebase.connection import Session
+from dastyaar.filebase.models import Edge, File, StorageDevice
+
 
 filename_regex = r"^(?P<root_name>.+)-v(?P<version_number>\d+)-(?P<sha256_hash>[0-9a-fA-F]{64})(?:\.(?P<extension>.+))$"
 potential_regex = r"[0-9a-fA-F]{30,}"
 
-def ingest_file(file_path: Path, ctime: datetime) -> File:
 
+
+def ingest_file(file_path: Path) -> File:
     # Match regex pattern, assign root_name, old_version_number,
     # and old_sha256_hash
     if re.search(pattern=potential_regex, string=file_path.name):
@@ -34,7 +35,7 @@ def ingest_file(file_path: Path, ctime: datetime) -> File:
     # Generate and assign other values
     file_size = file_path.stat().st_size
     file_extension = file_path.suffix.lstrip('.').lower()
-    version_number = old_version_number + 1 if old_version_number else 0
+    version_number = old_version_number + 1 if old_version_number else 1
     with file_path.open("rb") as f:
         sha256_hash = file_digest(f, "sha256").hexdigest()
 
@@ -49,57 +50,57 @@ def ingest_file(file_path: Path, ctime: datetime) -> File:
     shutil.move(src=new_filename, dst=intake_path)
 
     # Create file object with generated values
-    FileInstance = File(
+    file = File(
         root_name=root_name,
         version_number=version_number,
         sha256_hash=sha256_hash,
         extension=file_extension,
         size=file_size,
-        ctime=ctime
     )
 
-    with Session() as session:
+    with Session.begin() as session:
 
         # Retrieve intake storage device, make edge to associate it to the new file
-        IntakeDeviceInstance = session.scalar(select(StorageDevice).where(StorageDevice.path == str(intake_path)))
-        StoredOnEdgeInstance = Edge(
+        intake_device= session.scalar(select(StorageDevice).where(StorageDevice.path == str(intake_path)))
+        stored_on_edge = Edge(
             type="stored_on",
-            source_node=FileInstance,
-            target_node=IntakeDeviceInstance,
+            source_node=file,
+            target_node=intake_device,
         )
 
         # Potentially retrieve previous version of file,
         # add all objects to database
         if old_sha256_hash:
-            OldFileInstance = session.scalar(select(File).where(File.sha256_hash == old_sha256_hash))
-            NewVersionEdge = Edge(
+            old_file = session.scalar(select(File).where(File.sha256_hash == old_sha256_hash))
+            new_version_edge = Edge(
                 type="new_version_of",
-                source_node=FileInstance,
-                target_node=OldFileInstance,
+                source_node=file,
+                target_node=old_file,
             )
-            session.add_all([FileInstance, StoredOnEdgeInstance, OldFileInstance, NewVersionEdge])
+            session.add_all([file, stored_on_edge, old_file, new_version_edge])
         else:
-            session.add_all([FileInstance, StoredOnEdgeInstance])
-        session.commit()
+            session.add_all([file, stored_on_edge])
 
-        # Return the id of the newly inserted file
-        session.refresh(FileInstance)
-        return FileInstance
+        # Return the Instance of the newly inserted file
+        session.refresh(file)
+        return file
 
-def ingest_server_file(file_path: Path) -> File:
-    current_time = datetime.now(tz=timezone.utc)
-    return ingest_file(file_path=file_path, ctime=current_time)
+def ingest_client_file(file_path: Path, description: str | None = None) -> File:
+    # Perform the normal file ingest with provided creation time
+    file = ingest_file(file_path=file_path)
 
-def ingest_client_file(file_path: Path, ctime: datetime, description: str | None = None) -> File:
-    FileInstance = ingest_file(file_path=file_path, ctime=ctime)
-
+    # Done if no description
     if not description:
-        return FileInstance
+        return file
     
-    with Session() as session:
-        FileInstance.description = description
+    # Associate description with file,
+    # return file instance
+    with Session.begin() as session:
+        file.description = description
         
-        session.add(FileInstance)
-        session.commit()
+        session.add(file)
+
+        session.refresh(file)
+        return file
 
 

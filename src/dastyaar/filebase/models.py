@@ -30,7 +30,7 @@ class Node(Base):
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True, init=False)
     type: Mapped[str] = mapped_column(String(30), init=False)
-    created_ts: Mapped[datetime] = mapped_column(DateTime, default=datetime.now(timezone.utc), init=False)
+    inserted_ts: Mapped[datetime] = mapped_column(DateTime, default=datetime.now(timezone.utc), init=False)
 
     # Edge relationships
     outgoing_relationships: Mapped[list[Edge]] = relationship(
@@ -77,7 +77,7 @@ class Edge(Base):
 
     # Nullable / Defaults
     specific_metadata: Mapped[dict[str, Any] | None] = mapped_column(JSONB, default=None)
-    created_ts: Mapped[datetime] = mapped_column(DateTime, default=datetime.now(timezone.utc), init=False)
+    inserted_ts: Mapped[datetime] = mapped_column(DateTime, default=datetime.now(timezone.utc), init=False)
 
 
 class File(Node):
@@ -89,7 +89,7 @@ class File(Node):
     sha256_hash: Mapped[str] = mapped_column(CHAR(64))
     extension: Mapped[str] = mapped_column(String(16))
     size: Mapped[int] = mapped_column(BigInteger)
-    ctime: Mapped[datetime] = mapped_column(DateTime)
+    #created_ts: Mapped[datetime] = mapped_column(DateTime)
     specific_metadata: Mapped[dict[str, Any] | None] = mapped_column(JSONB, default=None)
     description: Mapped[str | None] = mapped_column(Text, default=None)
 

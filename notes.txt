@@ -1,4 +1,0 @@
-psql -h localhost -p 8432 -U postgres -d filebase
-
-
-pg_dump -h localhost -p 8432 -U postgres -d filebase > /Users/parsashemirani/main/filebase_dump.sql
