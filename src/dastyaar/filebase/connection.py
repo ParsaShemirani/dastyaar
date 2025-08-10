@@ -14,6 +14,3 @@ engine = create_engine(url_object, echo=True)
 
 Session = sessionmaker(bind=engine)
 
-session = Session()
-
-session.bulk_save_objects

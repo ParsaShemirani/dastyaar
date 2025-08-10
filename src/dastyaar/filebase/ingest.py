@@ -82,7 +82,6 @@ def ingest_file(file_path: Path) -> File:
             session.add_all([file, stored_on_edge])
 
         # Return the Instance of the newly inserted file
-        session.refresh(file)
         return file
 
 def ingest_client_file(file_path: Path, description: str | None = None) -> File:

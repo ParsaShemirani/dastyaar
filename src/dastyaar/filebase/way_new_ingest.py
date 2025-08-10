@@ -6,18 +6,16 @@ a file with an added description, file as part of collection, etc.
 """
 
 import re
-import shutil
-from typing import Tuple, NamedTuple
+from typing import NamedTuple
 from pathlib import Path
 from hashlib import file_digest
-from datetime import datetime
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session as SessionType
 
 from dastyaar.settings import intake_path
 from dastyaar.filebase.connection import Session
-from dastyaar.filebase.models import Edge, File, StorageDevice
+from dastyaar.filebase.models import Edge, File, StorageDevice, Description
 
 FILENAME_REGEX = r"^(?P<root_name>.+)-v(?P<version_number>\d+)-(?P<sha256_hash>[0-9a-fA-F]{64})(?:\.(?P<extension>.+))$"
 SHA256_HASH_REGEX = r"[0-9a-fA-F]{64}"
@@ -31,7 +29,7 @@ class FilenameComponents(NamedTuple):
     sha256_hash: str
 
 
-def build_filename_components(filename: str) -> FilenameComponents:
+def create_filename_components(filename: str) -> FilenameComponents:
     match = re.match(pattern=FILENAME_REGEX, string=filename)
     filename_components = FilenameComponents(
         root_name=match.group("root_name"),
@@ -68,20 +66,13 @@ def generate_new_filename(
     return new_filename
 
 
-def build_file_instance(file_path: Path, created_ts: datetime, session: SessionType) -> File:
-    """Generates the universal file metadata and returns its file instance"""
+def create_first_version_file(file_path: Path, session: SessionType) -> File:
     sha256_hash = generate_sha256_hash(file_path=file_path)
     if file_exists(sha256_hash=sha256_hash, session=session):
         raise FileExistsError(f"File with hash {sha256_hash} already exists.")
 
-    if is_first_version(filename=file_path.name):
-        root_name = file_path.stem
-        version_number = 1
-    else:
-        components = build_filename_components(filename=file_path.name)
-        root_name = components.root_name
-        version_number = components.version_number + 1
-
+    root_name = file_path.stem
+    version_number = 1
     size = file_path.stat().st_size
     extension = file_path.suffix.lstrip(".").lower()
 
@@ -91,17 +82,47 @@ def build_file_instance(file_path: Path, created_ts: datetime, session: SessionT
         sha256_hash=sha256_hash,
         extension=extension,
         size=size,
-        created_ts=created_ts
     )
     return file
 
 
+def create_new_version_file_and_edge(
+    file_path: Path, session: SessionType
+) -> tuple[File, Edge]:
+    sha256_hash = generate_sha256_hash(file_path=file_path)
+    if file_exists(sha256_hash=sha256_hash, session=session):
+        raise FileExistsError(f"File with hash {sha256_hash} already exists.")
+
+    filename_components = create_filename_components(filename=file_path.name)
+    previous_file = session.scalar(
+        select(File).where(File.sha256_hash == filename_components.sha256_hash)
+    )
+
+    root_name = filename_components.root_name
+    version_number = previous_file.version_number + 1
+    size = file_path.stat().st_size
+    extension = file_path.suffix.lstrip(".").lower()
+
+    file = File(
+        root_name=root_name,
+        version_number=version_number,
+        sha256_hash=sha256_hash,
+        extension=extension,
+        size=size,
+    )
+    edge = Edge(type="new_version_of", source_node=file, target_node=previous_file)
+    return file, edge
 
 
+def create_file_description_and_edge(
+    file: File, description_text: str
+) -> tuple[Description, Edge]:
+    description = Description(text=description_text)
+    edge = Edge(type="description_of", source_node=file, target_node=description)
+    return description, edge
 
 
-
-def get_intake_edge(file: File, intake_path: Path, session: SessionType) -> Edge:
+def create_intake_edge(file: File, intake_path: Path, session: SessionType) -> Edge:
     storage_device = session.scalar(
         select(StorageDevice).where(StorageDevice.path == str(intake_path))
     )
