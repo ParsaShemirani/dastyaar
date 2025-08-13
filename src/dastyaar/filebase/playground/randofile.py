@@ -11,7 +11,6 @@ def randoinsert():
         version_number=123,
         sha256_hash="f0f299be320770be16866f000c4abc027e7806de57fac222ee22c52a202dc81a",
         extension=".guz",
-        size=1230493
     )
     with Session() as session:
         with session.begin():
@@ -37,5 +36,9 @@ file = File(
 with Session() as session:
     with session.begin():
         file.created_ts = datetime.now(timezone.utc)
+        file.jamievar = "HELO JAMES"
+        file.testfield = "jamietowned"
         session.add(file)
     session.refresh(file)
+
+james = select(File).where

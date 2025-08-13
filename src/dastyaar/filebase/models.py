@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from typing import Any
 from datetime import datetime, timezone
+from dataclasses import field
 
 from sqlalchemy import (
     ForeignKey,
-    Integer,
     BigInteger,
     String,
     CHAR,
@@ -17,7 +17,7 @@ from sqlalchemy.orm import (
     MappedAsDataclass,
     Mapped,
     mapped_column,
-    relationship
+    relationship,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 
@@ -25,12 +25,17 @@ from sqlalchemy.dialects.postgresql import JSONB
 class Base(MappedAsDataclass, DeclarativeBase):
     pass
 
+
 class Node(Base):
     __tablename__ = "nodes"
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True, init=False)
+    id: Mapped[int] = mapped_column(
+        BigInteger, primary_key=True, autoincrement=True, init=False
+    )
     type: Mapped[str] = mapped_column(String(30), init=False)
-    inserted_ts: Mapped[datetime] = mapped_column(DateTime, default=datetime.now(timezone.utc), init=False)
+    inserted_ts: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.now(timezone.utc), init=False
+    )
 
     # Edge relationships
     outgoing_relationships: Mapped[list[Edge]] = relationship(
@@ -49,17 +54,19 @@ class Node(Base):
     )
 
     # Joined table inheritance
-    __mapper_args__ = {
-        "polymorphic_identity": "node",
-        "polymorphic_on": "type"
-    }
+    __mapper_args__ = {"polymorphic_identity": "node", "polymorphic_on": "type"}
+
 
 class Edge(Base):
     __tablename__ = "edges"
 
-    source_id: Mapped[int] = mapped_column(ForeignKey("nodes.id"), primary_key=True, init=False)
-    target_id: Mapped[int] = mapped_column(ForeignKey("nodes.id"), primary_key=True, init=False)
-    type: Mapped[str]= mapped_column(String(50), primary_key=True)
+    source_id: Mapped[int] = mapped_column(
+        ForeignKey("nodes.id"), primary_key=True, init=False
+    )
+    target_id: Mapped[int] = mapped_column(
+        ForeignKey("nodes.id"), primary_key=True, init=False
+    )
+    type: Mapped[str] = mapped_column(String(50), primary_key=True)
 
     # Node relationships
     source_node: Mapped[Node] = relationship(
@@ -76,55 +83,74 @@ class Edge(Base):
     )
 
     # Nullable / Defaults
-    specific_metadata: Mapped[dict[str, Any] | None] = mapped_column(JSONB, default=None)
-    inserted_ts: Mapped[datetime] = mapped_column(DateTime, default=datetime.now(timezone.utc), init=False)
+    specific_metadata: Mapped[dict[str, Any] | None] = mapped_column(
+        JSONB, default=None
+    )
+    inserted_ts: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.now(timezone.utc), init=False
+    )
 
 
 class File(Node):
     __tablename__ = "files"
 
-    id: Mapped[int] = mapped_column(ForeignKey("nodes.id"), primary_key=True, init=False)
+    id: Mapped[int] = mapped_column(
+        ForeignKey("nodes.id"), primary_key=True, init=False
+    )
     root_name: Mapped[str] = mapped_column(String(160))
-    version_number: Mapped[int] = mapped_column(Integer)
     sha256_hash: Mapped[str] = mapped_column(CHAR(64))
     extension: Mapped[str] = mapped_column(String(16))
     size: Mapped[int] = mapped_column(BigInteger)
-    created_ts: Mapped[datetime] = mapped_column(DateTime, init=False)
-    specific_metadata: Mapped[dict[str, Any] | None] = mapped_column(JSONB, default=None)
+    created_ts: Mapped[datetime] = mapped_column(DateTime)
+    specific_metadata: Mapped[dict[str, Any] | None] = mapped_column(
+        JSONB, default=None
+    )
 
-    __mapper_args__ = {
-        "polymorphic_identity": "file"
-    }
+    __mapper_args__ = {"polymorphic_identity": "file"}
+
 
 class StorageDevice(Node):
     __tablename__ = "storage_devices"
 
-    id: Mapped[int] = mapped_column(ForeignKey("nodes.id"), primary_key=True, init=False)
+    id: Mapped[int] = mapped_column(
+        ForeignKey("nodes.id"), primary_key=True, init=False
+    )
     name: Mapped[str] = mapped_column(String(160))
     size: Mapped[int] = mapped_column(BigInteger)
     path: Mapped[str | None] = mapped_column(String(160), default=None)
 
-    __mapper_args__ = {
-        "polymorphic_identity": "storage_device"
-    }
+    __mapper_args__ = {"polymorphic_identity": "storage_device"}
+
 
 class Description(Node):
     __tablename__ = "descriptions"
 
-    id: Mapped[int] = mapped_column(ForeignKey("nodes.id"), primary_key=True, init=False)
+    id: Mapped[int] = mapped_column(
+        ForeignKey("nodes.id"), primary_key=True, init=False
+    )
     text: Mapped[str] = mapped_column(Text)
 
-    __mapper_args__ = {
-        "polymorphic_identity": "description"
-    }
+    __mapper_args__ = {"polymorphic_identity": "description"}
+
 
 class Collection(Node):
     __tablename__ = "collections"
 
-    id: Mapped[int] = mapped_column(ForeignKey("nodes.id"), primary_key=True, init=False)
+    id: Mapped[int] = mapped_column(
+        ForeignKey("nodes.id"), primary_key=True, init=False
+    )
     name: Mapped[str] = mapped_column(String(160))
 
-    __mapper_args__ = {
-        "polymorphic_identity": "collection"
-    }
+    __mapper_args__ = {"polymorphic_identity": "collection"}
 
+
+class VersionGroup(Node):
+    __tablename__ = "version_groups"
+
+    id: Mapped[int] = mapped_column(
+        ForeignKey("nodes.id"), primary_key=True, init=False
+    )
+    head_file_id: Mapped[int] = mapped_column(ForeignKey("files.id"))
+    origin_file_id: Mapped[int] = mapped_column(ForeignKey("files.id"))
+
+    __mapper_args__ = {"polymorphic_identity": "version_group"}
