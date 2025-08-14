@@ -5,7 +5,10 @@ from datetime import datetime, timezone
 from dataclasses import field
 
 from sqlalchemy import (
+    Index,
+    Computed,
     ForeignKey,
+    Integer,
     BigInteger,
     String,
     CHAR,
@@ -19,8 +22,8 @@ from sqlalchemy.orm import (
     mapped_column,
     relationship,
 )
-from sqlalchemy.dialects.postgresql import JSONB
-
+from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR
+from pgvector.sqlalchemy import Vector
 
 class Base(MappedAsDataclass, DeclarativeBase):
     pass
@@ -61,10 +64,10 @@ class Edge(Base):
     __tablename__ = "edges"
 
     source_id: Mapped[int] = mapped_column(
-        ForeignKey("nodes.id"), primary_key=True, init=False
+        ForeignKey("nodes.id"), primary_key=True
     )
     target_id: Mapped[int] = mapped_column(
-        ForeignKey("nodes.id"), primary_key=True, init=False
+        ForeignKey("nodes.id"), primary_key=True
     )
     type: Mapped[str] = mapped_column(String(50), primary_key=True)
 
@@ -74,18 +77,17 @@ class Edge(Base):
         foreign_keys=[source_id],
         back_populates="outgoing_relationships",
         repr=False,
+        init=False,
     )
     target_node: Mapped[Node] = relationship(
         "Node",
         foreign_keys=[target_id],
         back_populates="incoming_relationships",
         repr=False,
+        init=False,
     )
 
-    # Nullable / Defaults
-    specific_metadata: Mapped[dict[str, Any] | None] = mapped_column(
-        JSONB, default=None
-    )
+    # Default
     inserted_ts: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.now(timezone.utc), init=False
     )
@@ -98,7 +100,9 @@ class File(Node):
         ForeignKey("nodes.id"), primary_key=True, init=False
     )
     root_name: Mapped[str] = mapped_column(String(160))
-    sha256_hash: Mapped[str] = mapped_column(CHAR(64))
+    # Init=False so we can create object before handle_version_group logic
+    version_number: Mapped[int] = mapped_column(Integer, init=False)
+    sha256_hash: Mapped[str] = mapped_column(CHAR(64), unique=True)
     extension: Mapped[str] = mapped_column(String(16))
     size: Mapped[int] = mapped_column(BigInteger)
     created_ts: Mapped[datetime] = mapped_column(DateTime)
@@ -117,7 +121,7 @@ class StorageDevice(Node):
     )
     name: Mapped[str] = mapped_column(String(160))
     size: Mapped[int] = mapped_column(BigInteger)
-    path: Mapped[str | None] = mapped_column(String(160), default=None)
+    path: Mapped[str | None] = mapped_column(String(160), default=None, unique=True)
 
     __mapper_args__ = {"polymorphic_identity": "storage_device"}
 
@@ -128,7 +132,9 @@ class Description(Node):
     id: Mapped[int] = mapped_column(
         ForeignKey("nodes.id"), primary_key=True, init=False
     )
-    text: Mapped[str] = mapped_column(Text)
+    text: Mapped[str] = mapped_column(Text, unique=True)
+    tsv: Mapped[str] = mapped_column(TSVECTOR, Computed("to_tsvector('english', coalesce(text, ''))", persisted=True), init=False)
+    embedding: Mapped[list[float]] = mapped_column(Vector(1536))
 
     __mapper_args__ = {"polymorphic_identity": "description"}
 
@@ -139,7 +145,7 @@ class Collection(Node):
     id: Mapped[int] = mapped_column(
         ForeignKey("nodes.id"), primary_key=True, init=False
     )
-    name: Mapped[str] = mapped_column(String(160))
+    name: Mapped[str] = mapped_column(String(160), unique=True)
 
     __mapper_args__ = {"polymorphic_identity": "collection"}
 
@@ -150,7 +156,5 @@ class VersionGroup(Node):
     id: Mapped[int] = mapped_column(
         ForeignKey("nodes.id"), primary_key=True, init=False
     )
-    head_file_id: Mapped[int] = mapped_column(ForeignKey("files.id"))
-    origin_file_id: Mapped[int] = mapped_column(ForeignKey("files.id"))
 
     __mapper_args__ = {"polymorphic_identity": "version_group"}
