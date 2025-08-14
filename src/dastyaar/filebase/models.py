@@ -100,7 +100,7 @@ class File(Node):
         ForeignKey("nodes.id"), primary_key=True, init=False
     )
     root_name: Mapped[str] = mapped_column(String(160))
-    # Init=False so we can create object before handle_version_group logic
+    # Version number init=False so we can create object before handle_version_group logic
     version_number: Mapped[int] = mapped_column(Integer, init=False)
     sha256_hash: Mapped[str] = mapped_column(CHAR(64), unique=True)
     extension: Mapped[str] = mapped_column(String(16))

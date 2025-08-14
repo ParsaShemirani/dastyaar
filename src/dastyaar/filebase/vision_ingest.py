@@ -7,8 +7,17 @@ from typing import NamedTuple
 from sqlalchemy import select
 from sqlalchemy.orm import Session as SessionType, aliased
 
-from dastyaar.filebase.models import Node, Edge, File, VersionGroup, Description
+from dastyaar.filebase.models import (
+    Node,
+    Edge,
+    File,
+    StorageDevice,
+    VersionGroup,
+    Description,
+)
 from dastyaar.langchain.embeddings import generate_embedding
+from dastyaar.settings import intake_storage_device_path
+
 
 FILENAME_REGEX = r"^(?P<root_name>.+)-v(?P<version_number>\d+)-(?P<sha256_hash>[0-9a-fA-F]{64})(?:\.(?P<extension>.+))$"
 
@@ -85,10 +94,22 @@ def handle_version_group(
 
 def create_description(node: Node, text: str, session: SessionType) -> None:
     description = Description(text=text, embedding=generate_embedding(text=text))
-    description_edge = Edge(
-        source_id=node.id, target_id=description.id, type="has_description"
+    edge = Edge(source_id=node.id, target_id=description.id, type="has_description")
+    session.add_all([description, edge])
+
+
+def associate_intake_storage_device(file_id: int, session: SessionType) -> None:
+    intake_storage_device_id = session.scalar(
+        select(StorageDevice.id).where(
+            StorageDevice.path == str(intake_storage_device_path)
+        )
     )
-    session.add_all([description, description_edge])
+    edge = Edge(
+        source_id=file_id,
+        target_id=intake_storage_device_id,
+        type="stored_on",
+    )
+    session.add(edge)
 
 
 def ingest_file(
@@ -110,6 +131,7 @@ def ingest_file(
     extension = file_path.suffix.lstrip(".").lower()
     if created_ts is None:
         created_ts = datetime.now(tz=timezone.utc)
+
     file = File(
         root_name=root_name,
         sha256_hash=sha256_hash,
@@ -125,3 +147,5 @@ def ingest_file(
 
     if description_text:
         create_description(node=file, text=description_text, session=session)
+
+    associate_intake_storage_device(file_id=file.id, session=session)
