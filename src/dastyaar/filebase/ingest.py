@@ -4,48 +4,30 @@ Functions are defined to ingest a file with the universal metadata,
 and build on top of that to automate common workflows, such as ingesting
 a file with an added description, file as part of collection, etc.
 """
-
 import re
-from typing import NamedTuple
+import shutil
+from datetime import datetime, timezone
 from pathlib import Path
 from hashlib import file_digest
-from datetime import datetime, timezone
-import shutil
+from typing import NamedTuple
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session as SessionType, aliased
 
-from dastyaar.settings import intake_storage_device_path
 from dastyaar.filebase.connection import Session
 from dastyaar.filebase.models import (
+    Node,
     Edge,
     File,
     StorageDevice,
-    Description,
     VersionGroup,
+    Description,
 )
-
-FILENAME_REGEX = (
-    r"^(?P<root_name>.+)-(?P<sha256_hash>[0-9a-fA-F]{64})(?:\.(?P<extension>.+))$"
-)
+from dastyaar.langchain.embeddings import generate_embedding
+from dastyaar.settings import intake_storage_device_path
 
 
-class FilenameComponents(NamedTuple):
-    """Stores filename components from FILENAME_REGEX pattern"""
-
-    root_name: str
-    sha256_hash: str
-
-
-def extract_filename_components(filename: str) -> FilenameComponents:
-    match = re.match(pattern=FILENAME_REGEX, string=filename)
-    if match:
-        filename_components = FilenameComponents(
-            root_name=match.group("root_name"), sha256_hash=match.group("sha256_hash")
-        )
-        return filename_components
-    else:
-        return None
+FILENAME_REGEX = r"^(?P<root_name>.+)-v(?P<version_number>\d+)-(?P<sha256_hash>[0-9a-fA-F]{64})(?:\.(?P<extension>.+))$"
 
 
 def generate_sha256_hash(file_path: Path) -> str:
@@ -53,13 +35,31 @@ def generate_sha256_hash(file_path: Path) -> str:
         return file_digest(f, "sha256").hexdigest()
 
 
-def file_is_unique(sha256_hash: str, session: SessionType) -> bool:
-    existing_file = session.scalar(select(File).where(File.sha256_hash == sha256_hash))
-    return False if existing_file else True
+class FilenameComponents(NamedTuple):
+    """Stores filename components from FILENAME_REGEX pattern"""
+
+    root_name: str
+    version_number: int
+    sha256_hash: str
 
 
-def generate_new_filename(root_name: str, sha256_hash: str, extension: str) -> str:
-    stem = f"{root_name}-{sha256_hash}"
+def extract_filename_components(filename: str) -> FilenameComponents | None:
+    match = re.match(pattern=FILENAME_REGEX, string=filename)
+    if match:
+        filename_components = FilenameComponents(
+            root_name=match.group("root_name"),
+            version_number=int(match.group("version_number")),
+            sha256_hash=match.group("sha256_hash"),
+        )
+        return filename_components
+    else:
+        return None
+
+
+def generate_new_filename(
+    root_name: str, version_number: int, sha256_hash: str, extension: str
+) -> str:
+    stem = f"{root_name}-v{version_number}-{sha256_hash}"
     if extension == "":
         new_filename = stem
     else:
@@ -67,12 +67,82 @@ def generate_new_filename(root_name: str, sha256_hash: str, extension: str) -> s
     return new_filename
 
 
-def create_file(file_path: Path, created_ts: datetime | None) -> File:
+def handle_version_group(
+    session: SessionType, file: File, previous_sha256_hash: str
+) -> None:
+    F = aliased(File, flat=True)
+    version_group = session.scalar(
+        select(VersionGroup)
+        .select_from(F)
+        .join(Edge, Edge.source_id == F.id)
+        .join(VersionGroup, VersionGroup.id == Edge.target_id)
+        .where(F.sha256_hash == previous_sha256_hash, Edge.type == "in_version_group")
+    )
+    previous_file = session.scalar(
+        select(File).where(File.sha256_hash == previous_sha256_hash)
+    )
+
+    if version_group is None:
+        if previous_file.version_number != 1:
+            raise ValueError("Houston, we have a problem")
+        version_group = VersionGroup()
+        previous_file_version_edge = Edge(
+            source_id=previous_file.id,
+            target_id=version_group.id,
+            type="in_version_group",
+        )
+        session.add_all([version_group, previous_file_version_edge])
+
+    file.version_number = previous_file.version_number + 1
+    file_version_edge = Edge(
+        source_id=file.id, target_id=version_group.id, type="in_version_group"
+    )
+    session.add(file_version_edge)
+
+
+def create_description(session: SessionType, node: Node, text: str) -> None:
+    description = Description(text=text, embedding=generate_embedding(text=text))
+    edge = Edge(source_id=node.id, target_id=description.id, type="has_description")
+    session.add_all([description, edge])
+
+
+def associate_intake_storage_device(session: SessionType, file_id: int) -> None:
+    intake_storage_device_id = session.scalar(
+        select(StorageDevice.id).where(
+            StorageDevice.path == str(intake_storage_device_path)
+        )
+    )
+    edge = Edge(
+        source_id=file_id,
+        target_id=intake_storage_device_id,
+        type="stored_on",
+    )
+    session.add(edge)
+
+
+def create_file(
+    session: SessionType,
+    file_path: Path,
+    created_ts: datetime | None,
+) -> File:
     filename_components = extract_filename_components(filename=file_path.name)
     if filename_components:
         root_name = filename_components.root_name
+        previous_sha256_hash = filename_components.sha256_hash
+        # Following version number slightly more reliable
+        # than the one from file components
+        version_number = (
+            session.scalar(
+                select(File.version_number).where(
+                    File.sha256_hash == previous_sha256_hash
+                )
+            )
+            + 1
+        )
     else:
         root_name = file_path.stem
+        previous_sha256_hash = None
+        version_number = 1
 
     sha256_hash = generate_sha256_hash(file_path=file_path)
     size = file_path.stat().st_size
@@ -82,85 +152,41 @@ def create_file(file_path: Path, created_ts: datetime | None) -> File:
 
     file = File(
         root_name=root_name,
+        version_number=version_number,
         sha256_hash=sha256_hash,
         extension=extension,
         size=size,
         created_ts=created_ts,
     )
+    session.add(file)
     return file
 
 
-def get_version_group_id(file_hash: str, session: SessionType) -> int:
-    F = aliased(File, flat=True)
-    return session.scalar(
-        select(VersionGroup.id)
-        .select_from(F)
-        .join(Edge, Edge.source_id == F.id)
-        .join(VersionGroup, VersionGroup.id == Edge.target_id)
-        .where(F.sha256_hash == file_hash, Edge.type == "in_version_group")
-        .limit(1)
-    )
+def ingest_file(
+    file_path: Path,
+    created_ts: datetime | None,
+    description_text: str | None = None,
+) -> None:
+    filename_components = extract_filename_components(filename=file_path.name)
+    previous_sha256_hash = filename_components.sha256_hash
 
-
-def base_ingest(file_path: Path, created_ts: datetime | None) -> File:
     with Session() as session:
         with session.begin():
-            sha256_hash = generate_sha256_hash(file_path=file_path)
-            if not file_is_unique(sha256_hash=sha256_hash, session=session):
-                raise FileExistsError(
-                    f"File already exists in filebase. (sha256 hash: {sha256_hash})"
-                )
-
-            file = create_file(file_path=file_path, created_ts=created_ts)
-            intake_storage_device = session.scalar(
-                select(StorageDevice).where(
-                    StorageDevice.path == str(intake_storage_device_path)
-                )
+            file = create_file(
+                session=session, file_path=file_path, created_ts=created_ts
             )
-            intake_storage_device_edge = Edge(
-                type="stored_on", source_node=file, target_node=intake_storage_device
-            )
-            filename_components = extract_filename_components(filename=file_path.name)
-            if filename_components:
-                previous_version_file = session.scalar(
-                    select(File).where(
-                        File.sha256_hash == filename_components.sha256_hash
-                    )
-                )
-                for edge in previous_version_file.outgoing_relationships:
-                    if edge.type == "in_version_group":
-                        previous_version_group = edge.target_node
-                        break
-                previous_version_group_edge = Edge(
-                    type="in_version_group",
-                    source_node=file,
-                    target_node=previous_version_group,
+
+            if previous_sha256_hash:
+                handle_version_group(
+                    session=session,
+                    file=file,
+                    previous_sha256_hash=previous_sha256_hash,
                 )
 
-                session.add_all(
-                    [
-                        file,
-                        intake_storage_device_edge,
-                        previous_version_group_edge,
-                    ]
-                )
-            else:
-                session.add_all([file, intake_storage_device_edge])
-        session.refresh(file)
+            if description_text:
+                create_description(session=session, node=file, text=description_text)
 
+            associate_intake_storage_device(session=session, file_id=file.id)
     shutil.move(
         src=str(file_path), dst=str(intake_storage_device_path / file.sha256_hash)
     )
-    return file
-
-
-"""
-Put in higher level
-
-    sha256_hash = generate_sha256_hash(file_path=file_path)
-    if not file_is_unique(sha256_hash=sha256_hash, session=session):
-        raise FileExistsError(
-            f"File already exists in filebase. (sha256 hash: {sha256_hash})"
-        )
-
-"""
